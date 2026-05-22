@@ -1,0 +1,161 @@
+---
+interface Props {
+  protocols: any[];
+}
+
+const { protocols } = Astro.props;
+
+const chainCounts = new Map<string, number>();
+const riskCounts = new Map<string, number>();
+const gateCounts = new Map<string, number>();
+for (const p of protocols) {
+  const d = p.data;
+  chainCounts.set(d.chain, (chainCounts.get(d.chain) ?? 0) + 1);
+  riskCounts.set(d.riskLevel, (riskCounts.get(d.riskLevel) ?? 0) + 1);
+  gateCounts.set(d.dealBreakerGate ?? 'Inconclusive', (gateCounts.get(d.dealBreakerGate ?? 'Inconclusive') ?? 0) + 1);
+}
+
+const chains = Array.from(chainCounts.keys()).sort();
+const riskLevels = ['Critical', 'High', 'Medium', 'Low'];
+const gates = ['Pass', 'Conditional', 'Watchlist', 'Fail', 'Inconclusive'];
+---
+
+<aside class="sticky top-4 space-y-5">
+  <div class="flex items-center justify-between">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Filters</h2>
+    <button
+      type="button"
+      data-clear-filters
+      class="text-xs text-slate-500 hover:text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed"
+      disabled
+    >
+      Clear all
+    </button>
+  </div>
+
+  <div>
+    <h3 class="font-semibold mb-2 text-slate-200">Gate Outcome</h3>
+    <ul class="space-y-1.5">
+      {gates.map(g => {
+        const n = gateCounts.get(g) ?? 0;
+        return (
+          <li>
+            <label class="flex items-center justify-between gap-2 group cursor-pointer text-sm" data-disabled={n === 0 ? 'true' : undefined}>
+              <span class="flex items-center gap-2">
+                <input type="checkbox" value={g} class="filter-gate rounded accent-blue-500" disabled={n === 0} />
+                <span class={n === 0 ? 'text-slate-600' : 'text-slate-300 group-hover:text-white'}>{g}</span>
+              </span>
+              <span class="text-xs text-slate-500">{n}</span>
+            </label>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+
+  <div>
+    <h3 class="font-semibold mb-2 text-slate-200">Chain</h3>
+    <ul class="space-y-1.5">
+      {chains.map(chain => {
+        const n = chainCounts.get(chain) ?? 0;
+        return (
+          <li>
+            <label class="flex items-center justify-between gap-2 group cursor-pointer text-sm">
+              <span class="flex items-center gap-2">
+                <input type="checkbox" value={chain} class="filter-chain rounded accent-blue-500" />
+                <span class="text-slate-300 group-hover:text-white">{chain}</span>
+              </span>
+              <span class="text-xs text-slate-500">{n}</span>
+            </label>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+
+  <div>
+    <h3 class="font-semibold mb-2 text-slate-200">Risk Level</h3>
+    <ul class="space-y-1.5">
+      {riskLevels.map(level => {
+        const n = riskCounts.get(level) ?? 0;
+        return (
+          <li>
+            <label class="flex items-center justify-between gap-2 group cursor-pointer text-sm" data-disabled={n === 0 ? 'true' : undefined}>
+              <span class="flex items-center gap-2">
+                <input type="checkbox" value={level} class="filter-risk rounded accent-blue-500" disabled={n === 0} />
+                <span class={n === 0 ? 'text-slate-600' : 'text-slate-300 group-hover:text-white'}>{level}</span>
+              </span>
+              <span class="text-xs text-slate-500">{n}</span>
+            </label>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</aside>
+
+<script>
+  (function () {
+    const sel = (cls: string) =>
+      Array.from(document.querySelectorAll<HTMLInputElement>(`.${cls}:checked`)).map(el => el.value);
+
+    const clearBtn = document.querySelector<HTMLButtonElement>('[data-clear-filters]');
+    const allBoxes = () => Array.from(document.querySelectorAll<HTMLInputElement>('.filter-gate, .filter-chain, .filter-risk'));
+    const matchCountEl = document.getElementById('match-count');
+    const emptyStateEl = document.getElementById('empty-state');
+    const grid = document.getElementById('protocol-grid');
+
+    const apply = () => {
+      const chains = sel('filter-chain');
+      const risks = sel('filter-risk');
+      const gates = sel('filter-gate');
+
+      const cards = document.querySelectorAll<HTMLElement>('a[data-protocol-card]');
+      let visible = 0;
+      cards.forEach(card => {
+        const chain = card.dataset.chain ?? '';
+        const risk = card.dataset.risk ?? '';
+        const gate = card.dataset.gate ?? '';
+
+        const ok =
+          (chains.length === 0 || chains.includes(chain)) &&
+          (risks.length === 0 || risks.includes(risk)) &&
+          (gates.length === 0 || gates.includes(gate));
+
+        card.style.display = ok ? '' : 'none';
+        if (ok) visible++;
+      });
+
+      const total = cards.length;
+      if (matchCountEl) {
+        matchCountEl.textContent = visible === total
+          ? `${total} protocol${total === 1 ? '' : 's'}`
+          : `${visible} of ${total} protocol${total === 1 ? '' : 's'}`;
+      }
+      if (emptyStateEl && grid) {
+        const isEmpty = visible === 0 && total > 0;
+        emptyStateEl.classList.toggle('hidden', !isEmpty);
+        grid.classList.toggle('hidden', isEmpty);
+      }
+
+      const anyActive = chains.length + risks.length + gates.length > 0;
+      if (clearBtn) clearBtn.disabled = !anyActive;
+    };
+
+    document.addEventListener('change', e => {
+      const t = e.target as HTMLInputElement;
+      if (t && (t.classList.contains('filter-gate') || t.classList.contains('filter-chain') || t.classList.contains('filter-risk'))) {
+        apply();
+      }
+    });
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        allBoxes().forEach(b => { if (b.checked) b.checked = false; });
+        apply();
+      });
+    }
+
+    apply();
+  })();
+</script>

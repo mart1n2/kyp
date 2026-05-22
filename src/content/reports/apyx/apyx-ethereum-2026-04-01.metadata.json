@@ -1,0 +1,257 @@
+{
+  "slug": "apyx-ethereum-2026-04-01",
+  "protocol": "APYX",
+  "protocolSlug": "apyx",
+  "chain": "Ethereum",
+  "auditDate": "04/01/2026",
+  "auditor": "Martin & Agent",
+  "complexityTier": "Moderate",
+  "frameworkVersion": "V1.2.3",
+
+  "securityScore": 72,
+  "securityGrade": "B",
+  "riskLevel": "Medium",
+  "dealBreakers": "0 Failed — Gate cleared",
+
+  "dealBreakerGate": "Pass",
+  "monitoringCadence": "Weekly",
+
+  "findingsSummary": "All deal breakers pass. Material residual risks are an admin-controlled vesting-substitution path (setVesting) with no output-bounds validation or timelock, an ADMIN role with zero execution delay at $75M+ TVL, and entirely off-chain backing of apxUSD with no on-chain proof-of-reserve. These are counterbalanced by strong smart-contract architecture (OZ AccessManager, OZ ERC4626 with built-in inflation protection), three top-tier audits, a 30-day withdrawal cooldown that structurally blocks flash-loan extraction, and a doxxed ex-Kraken team.",
+
+  "keyFindings": [
+    "setVesting() accepts any IVesting with no output-bounds on vestedAmount() — admin can manipulate share price via 3/6 multisig with no timelock",
+    "ADMIN role has 0 execution delay — upgrades and config changes execute immediately at $75M+ TVL",
+    "apxUSD backing (off-chain MSTR preferred stock) has no on-chain proof-of-reserve mechanism",
+    "Both 3/6 and 4/6 Safes share an identical 6-signer set, limiting defense-in-depth",
+    "30-day UnlockToken cooldown structurally blocks flash-loan extraction; OZ 5.5.0 ERC4626 virtual shares makes inflation attack non-profitable",
+    "Three top-tier audits (Zellic, Quantstamp, Certora) with critical/high findings confirmed fixed; no public bug bounty"
+  ],
+
+  "dealBreakerSummary": { "pass": 16, "fail": 0, "na": 7, "inconclusive": 0 },
+
+  "dealBreakerDetails": [
+    { "item": "EOA Upgrade Control",            "status": "PASS", "category": "Access Control & Governance", "evidence": "UUPS _authorizeUpgrade routes through AccessManager → 3/6 + 4/6 multisig. Deployer EOA (0x0442) revoked at block 24481052." },
+    { "item": "EOA Fund Control",               "status": "PASS", "category": "Access Control & Governance", "evidence": "No single-EOA fund withdrawal. YieldDistributor.withdraw() restricted to multisig." },
+    { "item": ">60% Governance Centralization", "status": "N/A",  "category": "Access Control & Governance", "evidence": "No governance token. Control is exclusively via multisig." },
+    { "item": "Governance Mechanism Bypass",    "status": "N/A",  "category": "Access Control & Governance", "evidence": "No governance mechanism exists." },
+    { "item": "Timelock Backdoors",             "status": "N/A",  "category": "Access Control & Governance", "evidence": "No timelock deployed. No emergencyExecute() or fastTrack() found." },
+    { "item": "No Emergency Controls",          "status": "PASS", "category": "Access Control & Governance", "evidence": "pause()/unpause() implemented on apxUSD, apyUSD, MinterV0, and CommitToken." },
+
+    { "item": "Direct Pool Price Oracle",       "status": "N/A",  "category": "Oracle & Price Integrity",     "evidence": "Managed single-asset vault; no external oracle consumed for share pricing." },
+    { "item": "Manual Price Control",           "status": "PASS", "category": "Oracle & Price Integrity",     "evidence": "No direct setPrice. Vesting substitution via setVesting() requires 3/6 multisig — not single-key. Flagged as HIGH finding." },
+
+    { "item": "Known Compiler Bugs",            "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Solidity 0.8.30 across all contracts. No known compiler-bug CVEs." },
+    { "item": "No Reentrancy Protection",       "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "CEI on critical paths (CommitToken._withdraw deletes state before call). ReentrancyGuardTransient on YieldDistributor." },
+    { "item": "Unlimited Minting",              "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Supply cap ($100M) + MinterV0 rate limiting + 60s AccessManager delay + multisig." },
+    { "item": "Unsafe Delegatecall",            "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "No delegatecall to user-supplied addresses found." },
+    { "item": "Uninitialized Implementation",   "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "_disableInitializers() called in ApxUSD constructor (line 78) and ApyUSD constructor (line 90)." },
+    { "item": "Unprotected Initializer",        "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "All initialize() functions use the initializer modifier with zero-address guards on all params." },
+
+    { "item": "No Audit + High TVL",            "status": "PASS", "category": "Audit & Verification",         "evidence": "TVL ~$75.3M apxUSD supply. Three audits: Zellic (Jan 2026), Quantstamp (Feb 2026), Certora (Mar 2026)." },
+    { "item": "Unverified Contracts",           "status": "PASS", "category": "Audit & Verification",         "evidence": "7 of 7 core contracts verified on Sourcify with full metadata match." },
+    { "item": "Critical Unfixed Issues",        "status": "PASS", "category": "Audit & Verification",         "evidence": "Zellic critical finding addressed. Certora high finding confirmed fixed." },
+
+    { "item": "Zero Flash Loan Protection",     "status": "PASS", "category": "Economic & Liquidity",         "evidence": "30-day UnlockToken cooldown blocks same-block extraction. Architecture flash-loan-resistant by design." },
+    { "item": "Broken Tokenomics",              "status": "PASS", "category": "Economic & Liquidity",         "evidence": "Yield from off-chain MSTR preferred-stock dividends (real yield), not circular emissions. APY < 100%." },
+    { "item": "No Slippage Protection",         "status": "PASS", "category": "Economic & Liquidity",         "evidence": "depositForMinShares(), mintForMaxAssets(), withdrawForMaxShares(), redeemForMinAssets() all present." },
+
+    { "item": "Centralized Bridge",             "status": "N/A",  "category": "Cross-Chain & Bridges",        "evidence": "Single chain (Ethereum mainnet). CCIP integration is interface-only." },
+    { "item": "No Transfer Limits",             "status": "N/A",  "category": "Cross-Chain & Bridges",        "evidence": "Not a bridge protocol." },
+    { "item": "No Token Verification",          "status": "N/A",  "category": "Cross-Chain & Bridges",        "evidence": "Not a bridge protocol." }
+  ],
+
+  "adminControlMatrix": [
+    {
+      "surface": "apxUSD — UUPS upgrade",
+      "controller": "0xf9862efc1704ac05e687f66e5cd8c130e5663ce2",
+      "controllerType": "Multisig",
+      "multisigConfig": "3/6",
+      "delayHours": 0,
+      "worstCase": "Replace apxUSD implementation — arbitrary mint or freeze of the stablecoin"
+    },
+    {
+      "surface": "apyUSD — UUPS upgrade",
+      "controller": "0xf9862efc1704ac05e687f66e5cd8c130e5663ce2",
+      "controllerType": "Multisig",
+      "multisigConfig": "3/6",
+      "delayHours": 0,
+      "worstCase": "Replace vault implementation — full drainage of deposited apxUSD"
+    },
+    {
+      "surface": "apyUSD — setVesting()",
+      "controller": "0xf9862efc1704ac05e687f66e5cd8c130e5663ce2",
+      "controllerType": "Multisig",
+      "multisigConfig": "3/6",
+      "delayHours": 0,
+      "worstCase": "Replace vesting contract with one returning inflated vestedAmount() — manipulate totalAssets and share price (HIGH finding F-C-02)"
+    },
+    {
+      "surface": "apyUSD — setUnlockToken()",
+      "controller": "0xf9862efc1704ac05e687f66e5cd8c130e5663ce2",
+      "controllerType": "Multisig",
+      "multisigConfig": "3/6",
+      "delayHours": 0,
+      "worstCase": "Replace withdrawal mechanism — alter or bypass the 30-day cooldown that anchors flash-loan resistance"
+    },
+    {
+      "surface": "AccessManager — co-admin",
+      "controller": "0xabdd8c8ee69e5f5180eb9352aeffc5ceead65e96",
+      "controllerType": "Multisig",
+      "multisigConfig": "4/6",
+      "delayHours": 0,
+      "worstCase": "Same authority as 3/6 admin; both Safes share an identical 6-signer set, so defense-in-depth between thresholds is limited"
+    },
+    {
+      "surface": "MinterV0 — apxUSD mint authority",
+      "controller": "0x2c36e1adfaa80ee0324b04cc814f5207bb7ba76e",
+      "controllerType": "Contract",
+      "delayHours": 0,
+      "worstCase": "Schedule apxUSD mint up to supply cap ($100M); 60-second AccessManager delay between schedule and execute provides a brief reaction window"
+    },
+    {
+      "surface": "YieldDistributor — withdraw()",
+      "controller": "0xf9862efc1704ac05e687f66e5cd8c130e5663ce2",
+      "controllerType": "Multisig",
+      "multisigConfig": "3/6",
+      "delayHours": 0,
+      "worstCase": "Withdraw accumulated yield. Blast radius bounded by MAX_FEE = 1% hard-cap"
+    }
+  ],
+
+  "openIssues": [
+    {
+      "issue": "Unbounded vesting contract substitution",
+      "category": "Oracle/DVI",
+      "severity": "High",
+      "impact": "Admin-controlled share-price inflation via setVesting() with no output-bounds or timelock",
+      "recommendation": "Add output-bounds validation or timelock on setter",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "_decimalsOffset() = 0 — minimal virtual offset",
+      "category": "Oracle/DVI",
+      "severity": "Low",
+      "impact": "OZ built-in +1 virtual shares makes inflation non-profitable; a larger offset would add defense-in-depth",
+      "recommendation": "Consider _decimalsOffset()=6 for extra margin",
+      "priority": "P2",
+      "timeline": "Optional"
+    },
+    {
+      "issue": "No timelock on ADMIN role",
+      "category": "Access Control",
+      "severity": "Medium",
+      "impact": "Upgrades execute immediately at $75M+ TVL with no public reaction window",
+      "recommendation": "Implement 48h+ timelock for upgrade authorization",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "Off-chain backing unverifiable on-chain",
+      "category": "Economic",
+      "severity": "Medium",
+      "impact": "Entire protocol value rests on team trust; no on-chain mechanism verifies the off-chain MSTR preferred-stock collateral",
+      "recommendation": "Implement proof-of-reserve oracle or custodian attestation",
+      "priority": "P2",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "No on-chain redemption for apxUSD",
+      "category": "Economic",
+      "severity": "Medium",
+      "impact": "No on-chain path to redeem against off-chain collateral",
+      "recommendation": "Establish and publish off-chain redemption policy",
+      "priority": "P2",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "Missing nonReentrant on apyUSD._withdraw()",
+      "category": "Smart Contract",
+      "severity": "Low",
+      "impact": "pullVestedYield() called pre-burn creates a theoretical re-entry window (requires admin-set malicious vesting contract)",
+      "recommendation": "Add nonReentrant or move pullVestedYield() post-burn",
+      "priority": "P2",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "No bug bounty or public security contact",
+      "category": "Operations",
+      "severity": "Low",
+      "impact": "No incentive for responsible disclosure; researchers have no documented channel",
+      "recommendation": "Launch Immunefi program with $500K+ max payout",
+      "priority": "P2",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "AddressList as system-wide SPOF",
+      "category": "Composability",
+      "severity": "Low",
+      "impact": "Bricked deny list freezes all token transfers",
+      "recommendation": "Consider automated failsafe or backup list",
+      "priority": "P2",
+      "timeline": "1 month"
+    }
+  ],
+
+  "auditHistory": [
+    {
+      "date": "01/2026",
+      "firm": "Zellic",
+      "tier": 1,
+      "scope": "Full protocol — ApxUSD, ApyUSD, CommitToken, UnlockToken, MinterV0, YieldDistributor, LinearVestV0, AddressList",
+      "findings": { "critical": 1, "high": 0, "medium": 2, "low": 2 },
+      "reportUrl": "https://github.com/Zellic/publications/blob/master/Apyx%20Stablecoin%20-%20Zellic%20Audit%20Report.pdf"
+    },
+    {
+      "date": "02/2026",
+      "firm": "Quantstamp",
+      "tier": 1,
+      "scope": "APX USD Stablecoin",
+      "reportUrl": "https://certificate.quantstamp.com/full/apx-usd-stablecoin/2a5be074-3d9f-49e7-aa08-46fb5f1e5bd6/index.html"
+    },
+    {
+      "date": "03/2026",
+      "firm": "Certora",
+      "tier": 1,
+      "scope": "APYX APX USD (apxUSD + apyUSD) — manual code review",
+      "findings": { "critical": 0, "high": 1, "medium": 0, "low": 0 },
+      "reportUrl": "https://www.certora.com/reports/apyx-apxusd"
+    }
+  ],
+
+  "accessControlRoles": [
+    { "contract": "AccessManager", "role": "ADMIN (Role 0)",       "holder": "0xf986...3ce2 (3/6 Safe)",                "powers": "Authorize UUPS upgrades, grant/revoke roles, call admin setters (setVesting, setUnlockToken)" },
+    { "contract": "AccessManager", "role": "ADMIN (Role 0)",       "holder": "0xabdd...5e96 (4/6 Safe)",                "powers": "Co-admin authority (shared signer set with 3/6)" },
+    { "contract": "AccessManager", "role": "MINT_STRAT (Role 1)",  "holder": "MinterV0 (0x2c36...a76e)",                "powers": "Schedule apxUSD mints with 60s AccessManager delay" },
+    { "contract": "AccessManager", "role": "Role 6",               "holder": "YieldDistributor (0xdbca...9c2a)",        "powers": "Yield-distribution operations" },
+    { "contract": "apxUSD / apyUSD / MinterV0 / CommitToken", "role": "Pause", "holder": "3/6 Safe",                    "powers": "pause() / unpause() on each core contract" }
+  ],
+
+  "contracts": [
+    { "name": "apxUSD (Proxy)",               "address": "0x98A878b1Cd98131B271883B390f68D2c90674665", "verified": true, "type": "UUPS Proxy",       "compiler": "0.8.30" },
+    { "name": "apxUSD (Impl)",                "address": "0xdd71fd677fde2ed2579a3c45204f41a11016ccb4", "verified": true, "type": "Implementation",   "compiler": "0.8.30" },
+    { "name": "apyUSD (Proxy)",               "address": "0x38EEb52F0771140d10c4E9A9a72349A329Fe8a6A", "verified": true, "type": "UUPS Proxy",       "compiler": "0.8.30" },
+    { "name": "apyUSD (Impl)",                "address": "0x208507bE7B01bEcFA4d93eE8a7d1F202eC66cACf", "verified": true, "type": "Implementation",   "compiler": "0.8.30" },
+    { "name": "UnlockToken",                  "address": "0x93775E2dFa4e716c361A1f53F212c7AE031BF4e6", "verified": true, "type": "Immutable",         "compiler": "0.8.30" },
+    { "name": "CommitToken: apxUSD",          "address": "0x17122d869d981d184118B301313BCD157c79871e", "verified": true, "type": "Immutable",         "compiler": "0.8.30" },
+    { "name": "CommitToken: apxUSD-USDC",     "address": "0xdfC3cF7E540628a52862907DC1AB935Cd5859375", "verified": true, "type": "Immutable",         "compiler": "0.8.30" },
+    { "name": "CommitToken: apyUSD-apxUSD",   "address": "0x55095f69C30E58290eCaA80F44019557d2bC4A60", "verified": true, "type": "Immutable",         "compiler": "0.8.30" },
+    { "name": "MinterV0",                     "address": "0x2c36e1adfaa80ee0324b04cc814f5207bb7ba76e", "verified": true, "type": "Immutable",         "compiler": "0.8.30" },
+    { "name": "YieldDistributor",             "address": "0xdbca79adc13a0fa6f921d5cf5b3fae2b8a739c2a", "verified": true, "type": "Immutable",         "compiler": "0.8.30" },
+    { "name": "AccessManager",                "address": "0xe167330E2Eac88666de253e9607C6d9ae0cA2824", "verified": true, "type": "OZ AccessManager",  "compiler": "" },
+    { "name": "Vesting",                      "address": "0x0D62B4cC02b4B51Ed19DDF41D7a7979CF394C99f", "verified": true, "type": "Immutable",         "compiler": "" }
+  ],
+
+  "protocolMeta": {
+    "website": "https://apyx.fi",
+    "docs": "https://docs.apyx.fi",
+    "github": "https://github.com/apyx-labs",
+    "type": "Stablecoin",
+    "subtype": "Managed Single-Asset (yield-bearing vault over off-chain backed stablecoin)",
+    "tvlUsd": 75300000,
+    "tvlSource": "Protocol disclosure (not listed on DeFiLlama)",
+    "launchDate": "2026-Q1"
+  },
+
+  "bugBounty": null
+}

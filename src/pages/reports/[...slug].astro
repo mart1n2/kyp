@@ -1,0 +1,96 @@
+---
+import Layout from '../../components/Layout.astro';
+import ReportTOC from '../../components/ReportTOC.astro';
+import { getCollection } from 'astro:content';
+import { renderMarkdown } from '../../utils/render-markdown';
+import { relativeAge } from '../../utils/format';
+
+export async function getStaticPaths() {
+  const reports = await getCollection('reports');
+  return reports.map(report => ({
+    params: { slug: `${report.data.protocolSlug}/${report.data.slug}` },
+    props: { report },
+  }));
+}
+
+const { report } = Astro.props;
+const {
+  protocol, chain, riskLevel, securityGrade, auditDate, auditor,
+  protocolSlug, body, dealBreakerGate, protocolMeta,
+} = report.data;
+
+const renderedContent = await renderMarkdown(body);
+const age = relativeAge(auditDate);
+
+const gateStyle: Record<string, string> = {
+  Pass:         'bg-green-900/40 text-green-200 border-green-700',
+  Conditional:  'bg-yellow-900/40 text-yellow-200 border-yellow-700',
+  Watchlist:    'bg-blue-900/40 text-blue-200 border-blue-700',
+  Fail:         'bg-red-900/40 text-red-200 border-red-700',
+  Inconclusive: 'bg-slate-800 text-slate-300 border-slate-700',
+};
+---
+
+<Layout
+  title={`${protocol} — Long-form Analysis (${auditDate})`}
+  description={`Long-form analysis companion for ${protocol} on ${chain}, audited ${auditDate}.`}
+>
+  <div
+    data-pagefind-body
+    data-pagefind-meta={`title:${protocol} — Long-form Analysis (${auditDate})`}
+  >
+  <meta data-pagefind-meta="type:report" />
+  <meta data-pagefind-meta={`protocol:${protocol}`} />
+  <meta data-pagefind-meta={`chain:${chain}`} />
+  <a href={`/protocols/${protocolSlug}`} class="text-sm text-blue-400 hover:underline mb-4 inline-flex items-center gap-1">
+    <span aria-hidden="true">←</span>
+    <span>Back to {protocol} dashboard</span>
+  </a>
+
+  <header class="mb-8">
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-wider text-slate-500 mb-1">
+      <span>Long-form Analysis</span>
+      <span aria-hidden="true">·</span>
+      <span>{chain}</span>
+      {protocolMeta?.type && (<><span aria-hidden="true">·</span><span>{protocolMeta.type}</span></>)}
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-bold mb-2">{protocol}</h1>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-400">
+      <span>Audited {auditDate}{age && <span class="text-slate-500"> · {age}</span>}</span>
+      <span aria-hidden="true">·</span>
+      <span>{auditor}</span>
+      <span aria-hidden="true">·</span>
+      <span class={`inline-block px-2 py-0.5 rounded border text-[11px] font-semibold ${gateStyle[dealBreakerGate] ?? gateStyle.Inconclusive}`}>
+        Gate: {dealBreakerGate}
+      </span>
+    </div>
+    <p class="text-xs text-slate-500 mt-3">
+      Narrative companion to the <a href={`/protocols/${protocolSlug}`} class="text-blue-400 hover:text-blue-300">structured dashboard</a>. For the trust matrix, deal-breaker table, and contract inventory, see the dashboard.
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <aside class="lg:col-span-1">
+      <ReportTOC markdown={body} />
+    </aside>
+    <article
+      class="lg:col-span-3 prose prose-invert prose-slate max-w-none
+             prose-headings:scroll-mt-20
+             prose-h1:text-3xl prose-h1:font-bold prose-h1:border-b prose-h1:border-slate-700 prose-h1:pb-2 prose-h1:mb-4
+             prose-h2:text-xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-3 prose-h2:border-b prose-h2:border-slate-700/50 prose-h2:pb-2
+             prose-h3:text-base prose-h3:font-semibold prose-h3:text-slate-100 prose-h3:mt-7 prose-h3:mb-2
+             prose-p:text-slate-300 prose-p:leading-relaxed
+             prose-li:text-slate-300 prose-li:my-1
+             prose-strong:text-slate-100
+             prose-a:text-blue-400 prose-a:no-underline hover:prose-a:text-blue-300 hover:prose-a:underline
+             prose-blockquote:border-l-blue-500 prose-blockquote:bg-slate-800/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r prose-blockquote:not-italic prose-blockquote:text-slate-200
+             prose-code:text-blue-200 prose-code:bg-slate-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-code:font-normal prose-code:text-[0.875em]
+             prose-hr:border-slate-700
+             prose-table:text-sm prose-table:my-4
+             prose-th:text-slate-200 prose-th:font-semibold prose-th:bg-slate-800/60 prose-th:py-2 prose-th:px-3 prose-th:text-left
+             prose-td:py-2 prose-td:px-3 prose-td:text-slate-300 prose-td:align-top"
+      set:html={renderedContent}
+    />
+  </div>
+  </div>
+</Layout>

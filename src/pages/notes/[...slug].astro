@@ -1,0 +1,136 @@
+---
+import Layout from '../../components/Layout.astro';
+import NoteKindBadge from '../../components/NoteKindBadge.astro';
+import { getCollection, render } from 'astro:content';
+import { relativeAge } from '../../utils/format';
+
+export async function getStaticPaths() {
+  const notes = await getCollection('notes', ({ data }) => !data.draft);
+  return notes.map(note => ({
+    params: { slug: note.id },
+    props: { note },
+  }));
+}
+
+const { note } = Astro.props;
+const { Content } = await render(note);
+
+function isoDate(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+const date = isoDate(note.data.date);
+const updated = note.data.updated ? isoDate(note.data.updated) : null;
+const effectiveDate = updated ?? date;
+const age = relativeAge(effectiveDate);
+
+const compareNotes = (
+  a: { data: { date: Date; updated?: Date } },
+  b: { data: { date: Date; updated?: Date } },
+) => {
+  const aTime = (a.data.updated ?? a.data.date).getTime();
+  const bTime = (b.data.updated ?? b.data.date).getTime();
+  if (aTime !== bTime) return bTime - aTime;
+  if (a.data.updated && !b.data.updated) return -1;
+  if (!a.data.updated && b.data.updated) return 1;
+  return 0;
+};
+
+// Find related notes — same primary tag, excluding self.
+const allNotes = (await getCollection('notes', ({ data }) => !data.draft))
+  .filter(n => n.id !== note.id)
+  .sort(compareNotes);
+
+const sharedTagNotes = allNotes
+  .filter(n => n.data.tags.some(t => note.data.tags.includes(t)))
+  .slice(0, 3);
+---
+
+<Layout
+  title={`${note.data.title} — Notes`}
+  description={note.data.description ?? note.data.title}
+>
+  <div
+    data-pagefind-body
+    data-pagefind-meta={`title:${note.data.title}`}
+  >
+  <meta data-pagefind-meta="type:note" />
+  {note.data.relatedProtocol && (
+    <meta data-pagefind-meta={`protocol:${note.data.relatedProtocol}`} />
+  )}
+  <a href="/notes" class="text-sm text-blue-400 hover:underline mb-4 inline-flex items-center gap-1">
+    <span aria-hidden="true">←</span>
+    <span>All notes</span>
+  </a>
+
+  <header class="mb-8">
+    {note.data.kind !== 'essay' && (
+      <div class="mb-3">
+        <NoteKindBadge kind={note.data.kind} incident={note.data.incident} size="md" />
+      </div>
+    )}
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-wider text-slate-500 mb-2">
+      {updated ? (
+        <>
+          <time datetime={updated} class="font-mono normal-case">Updated {updated}</time>
+          <span aria-hidden="true">·</span>
+          <time datetime={date} class="font-mono normal-case text-slate-600">orig {date}</time>
+        </>
+      ) : (
+        <time datetime={date} class="font-mono normal-case">{date}</time>
+      )}
+      {age && (<><span aria-hidden="true">·</span><span class="normal-case">{age}</span></>)}
+      {note.data.tags.map(tag => (
+        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 normal-case tracking-normal text-[11px]">{tag}</span>
+      ))}
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-bold mb-2 leading-tight">{note.data.title}</h1>
+    {note.data.description && (
+      <p class="text-slate-400 leading-relaxed max-w-2xl mt-2">{note.data.description}</p>
+    )}
+    {note.data.relatedProtocol && (
+      <p class="text-sm text-slate-400 mt-3">
+        Related protocol: <a href={`/protocols/${note.data.relatedProtocol}`} class="text-blue-400 hover:text-blue-300 underline-offset-2 hover:underline">{note.data.relatedProtocol}</a>
+      </p>
+    )}
+  </header>
+
+  <article
+    class="prose prose-invert prose-slate max-w-3xl
+           prose-headings:scroll-mt-20
+           prose-h1:hidden
+           prose-h2:text-xl prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-3
+           prose-h3:text-base prose-h3:font-semibold prose-h3:text-slate-100 prose-h3:mt-6 prose-h3:mb-2
+           prose-p:text-slate-300 prose-p:leading-relaxed
+           prose-li:text-slate-300 prose-li:my-1
+           prose-strong:text-slate-100
+           prose-a:text-blue-400 prose-a:no-underline hover:prose-a:text-blue-300 hover:prose-a:underline
+           prose-blockquote:border-l-blue-500 prose-blockquote:bg-slate-800/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r prose-blockquote:not-italic prose-blockquote:text-slate-200
+           prose-code:text-blue-200 prose-code:bg-slate-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-code:font-normal prose-code:text-[0.875em]
+           prose-hr:border-slate-700"
+  >
+    <Content />
+  </article>
+
+  {sharedTagNotes.length > 0 && (
+    <section class="mt-12 pt-6 border-t border-slate-700/60 max-w-3xl">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">More notes</h2>
+      <ul class="space-y-2">
+        {sharedTagNotes.map(n => (
+          <li>
+            <a href={`/notes/${n.id}`} class="block p-3 bg-slate-800/60 rounded border border-slate-700 hover:border-blue-500 transition-colors">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-sm font-medium text-slate-200">{n.data.title}</span>
+                <time class="text-xs text-slate-500 font-mono shrink-0">{isoDate(n.data.updated ?? n.data.date)}</time>
+              </div>
+              {n.data.description && (
+                <p class="text-xs text-slate-500 mt-1 line-clamp-1">{n.data.description}</p>
+              )}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+  </div>
+</Layout>

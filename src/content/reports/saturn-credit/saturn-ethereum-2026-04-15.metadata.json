@@ -1,0 +1,235 @@
+{
+  "slug": "saturn-ethereum-2026-04-15",
+  "protocol": "Saturn Credit",
+  "protocolSlug": "saturn-credit",
+  "chain": "Ethereum",
+  "auditDate": "04/15/2026",
+  "auditor": "Automated Pipeline (V1.2.3)",
+  "complexityTier": "Simple",
+  "frameworkVersion": "V1.2.3",
+
+  "securityScore": 0,
+  "securityGrade": "F",
+  "riskLevel": "Critical",
+  "dealBreakers": "3 Failed — Gate not cleared",
+
+  "dealBreakerGate": "Fail",
+  "monitoringCadence": "N/A",
+
+  "findingsSummary": "Three of four core upgradeable contracts can be unilaterally upgraded by a single EOA with no timelock, multisig, or governance oversight. The sUSDat vault, which holds all deposited user funds, is directly exposed; a compromised key would enable instant fund drainage. The deal-breaker gate fails on EOA upgrade control, EOA fund control, and timelock backdoors.",
+
+  "keyFindings": [
+    "Single EOA controls upgrades on 3/4 core contracts (USDat, sUSDat, WithdrawalQueueERC721)",
+    "No timelock on StrcPriceOracle.updateOracle() — oracle can be redirected instantly",
+    "20% toleranceBps on USDat<->STRC conversions is wide and processor-controlled",
+    "PROCESSOR_ROLE is a trusted off-chain actor with no on-chain rate limits",
+    "No public bug bounty program (Immunefi page returns 404)"
+  ],
+
+  "dealBreakerSummary": { "pass": 12, "fail": 3, "na": 5, "inconclusive": 3 },
+
+  "dealBreakerDetails": [
+    { "item": "EOA Upgrade Control",            "status": "FAIL", "category": "Access Control & Governance", "evidence": "Single EOA (0x6101...6820) controls proxy upgrades on USDat, sUSDat, and WithdrawalQueueERC721. Code size = 0 confirms EOA." },
+    { "item": "EOA Fund Control",               "status": "FAIL", "category": "Access Control & Governance", "evidence": "Same EOA holds DEFAULT_ADMIN_ROLE on sUSDat (ERC4626 vault). Via UUPS upgrade, complete fund extraction is possible in a single transaction." },
+    { "item": ">60% Governance Centralization", "status": "N/A",  "category": "Access Control & Governance", "evidence": "No governance token." },
+    { "item": "Governance Mechanism Bypass",    "status": "N/A",  "category": "Access Control & Governance", "evidence": "No governance voting mechanism." },
+    { "item": "Timelock Backdoors",             "status": "FAIL", "category": "Access Control & Governance", "evidence": "Zero timelock on USDat, sUSDat, Withdraw, StrcPriceOracle admin ops. Only SwapFacility has 72h TimelockController. updateOracle() can instantly redirect price feed." },
+    { "item": "No Emergency Controls",          "status": "PASS", "category": "Access Control & Governance", "evidence": "Pause/unpause implemented via COMPLIANCE_ROLE (pause) and DEFAULT_ADMIN_ROLE (unpause)." },
+
+    { "item": "Direct Pool Price Oracle",       "status": "PASS", "category": "Oracle & Price Integrity",     "evidence": "Uses Chainlink STRC feed wrapped by StrcPriceOracle with staleness check (26h) and price bounds ($20-$150). Not a DEX spot price." },
+    { "item": "Manual Price Control",           "status": "PASS", "category": "Oracle & Price Integrity",     "evidence": "Admin cannot set prices directly, but can call updateOracle() to change the oracle contract address — flagged as aggravating factor." },
+
+    { "item": "Known Compiler Bugs",            "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Solidity 0.8.20 and 0.8.26. 198 files pass, 0 fail." },
+    { "item": "No Reentrancy Protection",       "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "ReentrancyGuard on StakedUSDat and Withdraw; custom transient-storage lock on SwapFacility." },
+    { "item": "Unlimited Minting",              "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "USDat minting controlled by underlying M token wrapping (1:1 backed). No unbacked path." },
+    { "item": "Unsafe Delegatecall",            "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "No delegatecall or unvalidated .call{} in Saturn contracts (only OZ proxy infrastructure)." },
+    { "item": "Uninitialized Implementation",   "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "All 5 implementations call _disableInitializers() in constructor." },
+    { "item": "Unprotected Initializer",        "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "All initialize() use initializer modifier; SwapFacility uses reinitializer(2) for V2." },
+
+    { "item": "No Audit + High TVL",            "status": "PASS",         "category": "Audit & Verification",  "evidence": "3 audits completed (Three Sigma, 2× Certora). TVL unknown (not on DeFiLlama)." },
+    { "item": "Unverified Contracts",           "status": "PASS",         "category": "Audit & Verification",  "evidence": "10/10 contracts verified on Etherscan." },
+    { "item": "Critical Unfixed Issues",        "status": "Inconclusive", "category": "Audit & Verification",  "evidence": "Detailed audit findings not reviewed (pipeline halted at deal breaker gate)." },
+
+    { "item": "Zero Flash Loan Protection",     "status": "Inconclusive", "category": "Economic & Liquidity",  "evidence": "Internal balance tracking used (usdatBalance, strcBalance); deeper flash-loan analysis not performed." },
+    { "item": "Broken Tokenomics",              "status": "Inconclusive", "category": "Economic & Liquidity",  "evidence": "11%+ yield from STRC credit; revenue source not independently verified. Vesting caps reward distribution at 2.5% of totalAssets per cycle." },
+    { "item": "No Slippage Protection",         "status": "PASS",         "category": "Economic & Liquidity",  "evidence": "depositWithMinShares, mintWithMaxAssets, requestRedeem(minUsdatReceived). processRequests validates against oracle within toleranceBps." },
+
+    { "item": "Centralized Bridge",             "status": "N/A", "category": "Cross-Chain & Bridges",          "evidence": "Single chain (Ethereum only)." },
+    { "item": "No Transfer Limits",             "status": "N/A", "category": "Cross-Chain & Bridges",          "evidence": "Not a bridge." },
+    { "item": "No Token Verification",          "status": "N/A", "category": "Cross-Chain & Bridges",          "evidence": "Not a bridge." }
+  ],
+
+  "adminControlMatrix": [
+    {
+      "surface": "USDat — Proxy upgrade",
+      "controller": "0x610182581C93687Ca03F4a8E7f124f8cEC616820",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Replace USDat implementation — instant token redirection or freeze"
+    },
+    {
+      "surface": "USDat — DEFAULT_ADMIN_ROLE",
+      "controller": "0x610182581C93687Ca03F4a8E7f124f8cEC616820",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Grant/revoke any role on USDat (compliance, whitelist)"
+    },
+    {
+      "surface": "sUSDat — UUPS upgrade & DEFAULT_ADMIN_ROLE",
+      "controller": "0x610182581C93687Ca03F4a8E7f124f8cEC616820",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Replace vault implementation — full drainage of deposited USDat"
+    },
+    {
+      "surface": "Withdraw — UUPS upgrade & DEFAULT_ADMIN_ROLE",
+      "controller": "0x610182581C93687Ca03F4a8E7f124f8cEC616820",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Replace withdrawal queue — redirect funds in flight"
+    },
+    {
+      "surface": "StrcPriceOracle — DEFAULT_ADMIN_ROLE",
+      "controller": "0x610182581C93687Ca03F4a8E7f124f8cEC616820",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Redirect oracle to attacker feed — instant NAV manipulation"
+    },
+    {
+      "surface": "Mint/Redeem (SwapFacility) — Proxy upgrade",
+      "controller": "0x23CA665c8a73292Fc7AC2cC4493d2cE883BBA468",
+      "controllerType": "Timelock",
+      "delayHours": 72,
+      "worstCase": "Mint/Redeem upgrade — 72h public delay before exposure"
+    },
+    {
+      "surface": "Chainlink STRC Feed — Owner",
+      "controller": "0x21f73D42Eb58Ba49dDB685dc29D3bF5c0f0373CA",
+      "controllerType": "Multisig",
+      "multisigConfig": "4/9",
+      "delayHours": 0,
+      "worstCase": "Replace Chainlink STRC price feed implementation"
+    }
+  ],
+
+  "openIssues": [
+    {
+      "issue": "Single EOA controls upgrades on 3/4 core contracts",
+      "category": "Access Control",
+      "severity": "Critical",
+      "impact": "Complete fund drainage via malicious upgrade",
+      "recommendation": "Migrate admin authority to a multisig (≥3/5) behind a TimelockController (≥48h)",
+      "priority": "P0",
+      "timeline": "Immediate"
+    },
+    {
+      "issue": "No timelock on StrcPriceOracle.updateOracle()",
+      "category": "Oracle",
+      "severity": "High",
+      "impact": "Instant oracle substitution could manipulate NAV and conversion rates",
+      "recommendation": "Add timelock to all oracle admin operations (updateOracle, setStaleness, setBounds)",
+      "priority": "P0",
+      "timeline": "Immediate"
+    },
+    {
+      "issue": "20% toleranceBps on USDat<->STRC conversions",
+      "category": "Oracle",
+      "severity": "Medium",
+      "impact": "Wide tolerance allows significant price deviation during processor settlement",
+      "recommendation": "Reduce toleranceBps to 5–10% or implement dynamic tolerance bounded by oracle volatility",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "No public bug bounty program",
+      "category": "Operations",
+      "severity": "Medium",
+      "impact": "Reduces incentive for responsible vulnerability disclosure",
+      "recommendation": "Establish an Immunefi program with $100K+ max bounty",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "PROCESSOR_ROLE is a trusted off-chain actor",
+      "category": "Access Control",
+      "severity": "Medium",
+      "impact": "Processor controls STRC conversions and withdrawal processing without on-chain bounds",
+      "recommendation": "Implement on-chain rate limits and per-cycle caps on processor actions",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "Protocol not tracked on DeFiLlama",
+      "category": "Transparency",
+      "severity": "Low",
+      "impact": "Reduces independent TVL monitoring capability",
+      "recommendation": "Submit DeFiLlama listing and maintain adapter",
+      "priority": "P2",
+      "timeline": "1 month"
+    }
+  ],
+
+  "auditHistory": [
+    {
+      "date": "Unknown",
+      "firm": "Three Sigma",
+      "tier": 2,
+      "scope": "Audit #1 — full scope undisclosed",
+      "reportUrl": "https://3131394583-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FaoxN2WzhSM74tsJUct0C%2Fuploads%2FPKsYColQZJy0e2AlTX7K%2FThree%20Sigma%20-%20Audit%20%231.pdf?alt=media&token=27dc0f4e-6882-4188-b46b-6f0b65f8ef9c"
+    },
+    {
+      "date": "Unknown",
+      "firm": "Certora",
+      "tier": 1,
+      "scope": "Audit #2 — full scope undisclosed",
+      "reportUrl": "https://3131394583-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FaoxN2WzhSM74tsJUct0C%2Fuploads%2FKNrnqGyTv1VPM2rbBIp0%2FCertora%20-%20Audit%20%232.pdf?alt=media&token=1249bd80-ea7f-4447-a7f3-ba2b5e21fd9d"
+    },
+    {
+      "date": "Unknown",
+      "firm": "Certora",
+      "tier": 1,
+      "scope": "Audit #3 — full scope undisclosed",
+      "reportUrl": "https://3131394583-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FaoxN2WzhSM74tsJUct0C%2Fuploads%2FcHvWwaDplLvCFpOvoqaO%2FCerotra%20-%20Audit%20%233.pdf?alt=media&token=45d8b677-5c0b-4481-b77d-dc98e9509545"
+    }
+  ],
+
+  "accessControlRoles": [
+    { "contract": "USDat",           "role": "DEFAULT_ADMIN_ROLE",     "holder": "0x6101...6820 (EOA)",      "powers": "Grant/revoke roles, full admin" },
+    { "contract": "USDat",           "role": "WHITELIST_MANAGER_ROLE", "holder": "Compliance address",       "powers": "Enable/disable whitelist, add/remove addresses" },
+    { "contract": "sUSDat",          "role": "DEFAULT_ADMIN_ROLE",     "holder": "0x6101...6820 (EOA)",      "powers": "Upgrade, vesting, fees, tolerance, unpause, rescueTokens, redistributeLockedAmount" },
+    { "contract": "sUSDat",          "role": "PROCESSOR_ROLE",         "holder": "Processor address",        "powers": "Convert USDat<->STRC, distribute rewards" },
+    { "contract": "sUSDat",          "role": "COMPLIANCE_ROLE",        "holder": "Compliance address",       "powers": "Blacklist/unblacklist, pause" },
+    { "contract": "Withdraw",        "role": "DEFAULT_ADMIN_ROLE",     "holder": "0x6101...6820 (EOA)",      "powers": "Upgrade, unpause" },
+    { "contract": "Withdraw",        "role": "PROCESSOR_ROLE",         "holder": "Processor address",        "powers": "Lock/unlock/process withdrawal requests" },
+    { "contract": "Withdraw",        "role": "COMPLIANCE_ROLE",        "holder": "Compliance address",       "powers": "Seize requests, seize funds, pause" },
+    { "contract": "Withdraw",        "role": "STAKED_USDAT_ROLE",      "holder": "sUSDat proxy",             "powers": "Add requests, claim on behalf of users" },
+    { "contract": "StrcPriceOracle", "role": "DEFAULT_ADMIN_ROLE",     "holder": "0x6101...6820 (EOA)",      "powers": "Update oracle, set staleness, set price bounds" },
+    { "contract": "SwapFacility",    "role": "DEFAULT_ADMIN_ROLE",     "holder": "Set at init (unconfirmed)", "powers": "Set permissioned extensions/swappers" }
+  ],
+
+  "contracts": [
+    { "name": "USDat (Proxy)",         "address": "0x23238f20b894f29041f48D88eE91131C395Aaa71", "verified": true, "type": "TransparentUpgradeableProxy", "compiler": "0.8.26" },
+    { "name": "USDat (Impl)",          "address": "0x17cac25c6d6bbcb592837fea083a5c8eb4d1e52e", "verified": true, "type": "Implementation",            "compiler": "0.8.26" },
+    { "name": "sUSDat (Proxy)",        "address": "0xD166337499E176bbC38a1FBd113Ab144e5bd2Df7", "verified": true, "type": "ERC1967Proxy (UUPS)",        "compiler": "0.8.20" },
+    { "name": "sUSDat (Impl)",         "address": "0x2005e0ca201a37694125ff267ae57872bea0a0ce", "verified": true, "type": "Implementation",            "compiler": "0.8.20" },
+    { "name": "Mint/Redeem (Proxy)",   "address": "0xB6807116b3B1B321a390594e31ECD6e0076f6278", "verified": true, "type": "TransparentUpgradeableProxy", "compiler": "0.8.26" },
+    { "name": "Mint/Redeem (Impl)",    "address": "0x45bf08d042a8958f01f8e8319b791e4584550da8", "verified": true, "type": "Implementation",            "compiler": "0.8.26" },
+    { "name": "Withdraw (Proxy)",      "address": "0x4Bc9FEC04F0F95e9b42a3EF18F3C96fB57923D2e", "verified": true, "type": "ERC1967Proxy (UUPS)",        "compiler": "0.8.20" },
+    { "name": "Withdraw (Impl)",       "address": "0x256fa0ba1b6dfb50ee883955c5a99d3c1b017fd5", "verified": true, "type": "Implementation",            "compiler": "0.8.20" },
+    { "name": "StrcPriceOracle",       "address": "0x5f7eCD0D045c393da6cb6c933c671AC305A871BF", "verified": true, "type": "Immutable",                  "compiler": "0.8.20" },
+    { "name": "Chainlink STRC Feed",   "address": "0xf4d2076277fff631EFC4385Ab36b1f7734218d23", "verified": true, "type": "EACAggregatorProxy",         "compiler": "0.6.6"  }
+  ],
+
+  "protocolMeta": {
+    "website": "https://saturn.credit/",
+    "docs": "https://saturncredit.gitbook.io/saturn-docs",
+    "github": "",
+    "type": "Stablecoin",
+    "subtype": "Managed Single-Asset (yield via STRC credit exposure)",
+    "tvlUsd": null,
+    "tvlSource": "Not listed on DeFiLlama",
+    "launchDate": ""
+  },
+
+  "bugBounty": null
+}

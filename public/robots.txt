@@ -1,0 +1,13 @@
+# public/robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://kyp.one/sitemap-index.xml
+
+# AI crawlers
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Google-Extended
+Allow: /

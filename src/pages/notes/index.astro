@@ -1,0 +1,213 @@
+---
+import Layout from '../../components/Layout.astro';
+import NoteKindBadge from '../../components/NoteKindBadge.astro';
+import { getCollection } from 'astro:content';
+import { relativeAge } from '../../utils/format';
+
+const compareNotes = (
+  a: { data: { date: Date; updated?: Date } },
+  b: { data: { date: Date; updated?: Date } },
+) => {
+  const aTime = (a.data.updated ?? a.data.date).getTime();
+  const bTime = (b.data.updated ?? b.data.date).getTime();
+  if (aTime !== bTime) return bTime - aTime;
+  if (a.data.updated && !b.data.updated) return -1;
+  if (!a.data.updated && b.data.updated) return 1;
+  return 0;
+};
+
+const notes = (await getCollection('notes', ({ data }) => !data.draft))
+  .sort(compareNotes);
+
+const tagCounts = new Map<string, number>();
+for (const n of notes) {
+  for (const t of n.data.tags) {
+    tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+  }
+}
+const tags = Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+const incidentCount = notes.filter(n => n.data.kind === 'incident').length;
+const researchCount = notes.filter(n => n.data.kind === 'research').length;
+
+function isoDate(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+---
+
+<Layout title="Notes — Know Your Protocol" description="Security research, writeups, and meta posts on the KYP framework.">
+  <section class="mb-8">
+    <div class="inline-flex items-center gap-2 mb-3 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-medium text-blue-300 uppercase tracking-wider">
+      <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"></span>
+      {notes.length} {notes.length === 1 ? 'note' : 'notes'}
+    </div>
+    <h1 class="text-4xl sm:text-5xl font-extrabold mb-3 tracking-tight bg-gradient-to-br from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">Notes</h1>
+    <p class="text-slate-400 max-w-2xl leading-relaxed">
+      Security research, writeups, and short essays. Some posts are tied to a specific protocol on this site; others are cross-cutting.
+    </p>
+  </section>
+
+  {(incidentCount + researchCount) > 0 && (
+    <div class="mb-3 flex flex-wrap items-center gap-2">
+      <span class="text-xs uppercase tracking-wider text-slate-500 mr-1">Type:</span>
+      <button
+        type="button"
+        data-kind-filter=""
+        class="kind-filter is-active px-2.5 py-1 rounded border text-xs font-medium transition-colors"
+      >All <span class="text-slate-500">({notes.length})</span></button>
+      {incidentCount > 0 && (
+        <button
+          type="button"
+          data-kind-filter="incident"
+          class="kind-filter kind-incident px-2.5 py-1 rounded border text-xs font-medium transition-colors inline-flex items-center gap-1"
+        ><span aria-hidden="true">⚠</span> Incidents <span class="opacity-60">({incidentCount})</span></button>
+      )}
+      {researchCount > 0 && (
+        <button
+          type="button"
+          data-kind-filter="research"
+          class="kind-filter kind-research px-2.5 py-1 rounded border text-xs font-medium transition-colors inline-flex items-center gap-1"
+        ><span aria-hidden="true">◆</span> Research <span class="opacity-60">({researchCount})</span></button>
+      )}
+    </div>
+  )}
+
+  {tags.length > 0 && (
+    <div class="mb-6 flex flex-wrap items-center gap-2">
+      <span class="text-xs uppercase tracking-wider text-slate-500 mr-1">Tag:</span>
+      <button
+        type="button"
+        data-tag-filter=""
+        class="tag-filter is-active px-2.5 py-1 rounded border text-xs font-medium transition-colors"
+      >All <span class="text-slate-500">({notes.length})</span></button>
+      {tags.map(([tag, count]) => (
+        <button
+          type="button"
+          data-tag-filter={tag}
+          class="tag-filter px-2.5 py-1 rounded border text-xs font-medium transition-colors"
+        >{tag} <span class="text-slate-500">({count})</span></button>
+      ))}
+    </div>
+  )}
+
+  <ul id="notes-list" class="space-y-3">
+    {notes.map(note => {
+      const kindClass = note.data.kind === 'incident' ? 'is-incident' : note.data.kind === 'research' ? 'is-research' : '';
+      return (
+      <li
+        data-note-card
+        data-tags={note.data.tags.join(',')}
+        data-kind={note.data.kind}
+      >
+        <a
+          href={`/notes/${note.id}`}
+          class={`kyp-card ${kindClass} block p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`}
+        >
+          {note.data.kind !== 'essay' && (
+            <div class="mb-2">
+              <NoteKindBadge kind={note.data.kind} incident={note.data.incident} size="sm" />
+            </div>
+          )}
+          <div class="flex items-start justify-between gap-4 mb-1">
+            <h2 class="text-lg font-semibold text-slate-100">{note.data.title}</h2>
+            <div class="shrink-0 text-right text-xs font-mono">
+              <time datetime={isoDate(note.data.updated ?? note.data.date)} class="text-slate-500">
+                {isoDate(note.data.updated ?? note.data.date)}
+              </time>
+              {note.data.updated && note.data.updated.getTime() !== note.data.date.getTime() && (
+                <div class="text-[10px] text-slate-600 normal-case">
+                  updated · orig {isoDate(note.data.date)}
+                </div>
+              )}
+            </div>
+          </div>
+          {note.data.description && (
+            <p class="text-sm text-slate-400 leading-relaxed mt-1">{note.data.description}</p>
+          )}
+          <div class="flex flex-wrap items-center gap-1.5 mt-3 text-xs">
+            {note.data.tags.map(tag => (
+              <span class="px-2 py-0.5 rounded border bg-slate-900 text-slate-400 border-slate-700">{tag}</span>
+            ))}
+            {note.data.relatedProtocol && (
+              <span class="ml-auto text-slate-500">↳ <span class="text-blue-400">{note.data.relatedProtocol}</span></span>
+            )}
+            <span class="text-slate-600">· {relativeAge(isoDate(note.data.updated ?? note.data.date))}</span>
+          </div>
+        </a>
+      </li>
+    );
+    })}
+  </ul>
+
+  {notes.length === 0 && (
+    <div class="p-8 bg-slate-800/40 border border-dashed border-slate-700 rounded-lg text-center">
+      <div class="text-slate-300 font-semibold mb-1">No notes yet</div>
+      <p class="text-sm text-slate-500">Markdown files in <code class="text-slate-400">src/content/notes/</code> will appear here.</p>
+    </div>
+  )}
+</Layout>
+
+<style>
+  .tag-filter, .kind-filter {
+    background: rgb(30 41 59 / 0.6);
+    color: rgb(203 213 225);
+    border-color: rgb(51 65 85);
+  }
+  .tag-filter:hover, .kind-filter:hover {
+    background: rgb(30 41 59);
+    color: rgb(241 245 249);
+  }
+  .tag-filter.is-active {
+    background: rgb(30 58 138 / 0.4);
+    color: rgb(191 219 254);
+    border-color: rgb(29 78 216);
+  }
+  .kind-filter.kind-incident.is-active {
+    background: rgb(127 29 29 / 0.35);
+    color: rgb(254 202 202);
+    border-color: rgb(220 38 38 / 0.5);
+  }
+  .kind-filter.kind-research.is-active {
+    background: rgb(120 53 15 / 0.35);
+    color: rgb(253 230 138);
+    border-color: rgb(245 158 11 / 0.5);
+  }
+  .kind-filter.is-active:not(.kind-incident):not(.kind-research) {
+    background: rgb(30 58 138 / 0.4);
+    color: rgb(191 219 254);
+    border-color: rgb(29 78 216);
+  }
+</style>
+
+<script>
+  (function () {
+    const tagButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.tag-filter'));
+    const kindButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.kind-filter'));
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-note-card]'));
+    if (cards.length === 0) return;
+
+    let activeTag = '';
+    let activeKind = '';
+
+    const apply = () => {
+      tagButtons.forEach(b => b.classList.toggle('is-active', (b.dataset.tagFilter ?? '') === activeTag));
+      kindButtons.forEach(b => b.classList.toggle('is-active', (b.dataset.kindFilter ?? '') === activeKind));
+      cards.forEach(card => {
+        const cardTags = (card.dataset.tags ?? '').split(',').filter(Boolean);
+        const cardKind = card.dataset.kind ?? 'essay';
+        const tagOk = activeTag === '' || cardTags.includes(activeTag);
+        const kindOk = activeKind === '' || cardKind === activeKind;
+        card.style.display = (tagOk && kindOk) ? '' : 'none';
+      });
+    };
+
+    tagButtons.forEach(b => b.addEventListener('click', () => {
+      activeTag = b.dataset.tagFilter ?? '';
+      apply();
+    }));
+    kindButtons.forEach(b => b.addEventListener('click', () => {
+      activeKind = b.dataset.kindFilter ?? '';
+      apply();
+    }));
+  })();
+</script>

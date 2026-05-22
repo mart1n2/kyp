@@ -1,0 +1,352 @@
+---
+import Layout from '../../components/Layout.astro';
+import ProtocolHero from '../../components/ProtocolHero.astro';
+import PageNav from '../../components/PageNav.astro';
+import AdminControlMatrix from '../../components/AdminControlMatrix.astro';
+import OpenIssuesBoard from '../../components/OpenIssuesBoard.astro';
+import DealBreakerList from '../../components/DealBreakerList.astro';
+import ContractList from '../../components/ContractList.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const reports = await getCollection('reports');
+  const protocolMap = new Map();
+  for (const report of reports) {
+    const pSlug = report.data.protocolSlug;
+    if (!protocolMap.has(pSlug) || report.data.auditDate > protocolMap.get(pSlug).data.auditDate) {
+      protocolMap.set(pSlug, report);
+    }
+  }
+  return Array.from(protocolMap.entries()).map(([slug, report]) => ({
+    params: { slug },
+    props: { report, protocolSlug: slug },
+  }));
+}
+
+const { report, protocolSlug } = Astro.props;
+const {
+  protocol, chain, riskLevel, securityScore, securityGrade, auditDate, auditor,
+  dealBreakerDetails, accessControlRoles, contracts, keyFindings, findingsSummary,
+  dealBreakerGate, monitoringCadence,
+  complexityTier, frameworkVersion,
+  openIssues, auditHistory, adminControlMatrix,
+  protocolMeta, bugBounty, dealBreakerSummary,
+} = report.data;
+
+const failedDealBreakers = dealBreakerDetails.filter(d => d.status === 'FAIL').length;
+const totalDealBreakers = dealBreakerDetails.length;
+
+const eoaSurfaces = adminControlMatrix.filter(s => s.controllerType === 'EOA');
+const eoaSurfaceLabels = eoaSurfaces.map(s => s.surface);
+const hasEoaControl = eoaSurfaces.length > 0
+  || accessControlRoles.some(r => r.holder.includes('EOA'));
+
+const openIssuesP0 = openIssues.filter(i => i.priority === 'P0').length;
+const auditsTier1Count = auditHistory.filter(a => a.tier === 1).length;
+
+const allReports = (await getCollection('reports'))
+  .filter(r => r.data.protocolSlug === protocolSlug)
+  .sort((a, b) => b.data.auditDate.localeCompare(a.data.auditDate));
+
+const relatedNotes = (await getCollection('notes', ({ data }) => !data.draft && data.relatedProtocol === protocolSlug))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const dbCategories = Array.from(new Set(dealBreakerDetails.map(d => d.category).filter(Boolean))) as string[];
+const groupedDB = dbCategories.length > 0
+  ? dbCategories.map(cat => ({ category: cat, items: dealBreakerDetails.filter(d => d.category === cat) }))
+  : [{ category: 'All', items: dealBreakerDetails }];
+
+const dbStatusColor: Record<string, string> = {
+  PASS: 'bg-green-900/50 text-green-200 border-green-800',
+  FAIL: 'bg-red-900/50 text-red-200 border-red-800',
+  'N/A': 'bg-slate-800 text-slate-400 border-slate-700',
+  Inconclusive: 'bg-yellow-900/40 text-yellow-200 border-yellow-700',
+};
+
+const sections = [
+  ...(findingsSummary || keyFindings.length > 0 ? [{ id: 'findings', label: 'Findings' }] : []),
+  ...(adminControlMatrix.length > 0 ? [{ id: 'trust', label: 'Trust Surfaces', count: adminControlMatrix.length }] : []),
+  ...(dealBreakerDetails.length > 0 ? [{ id: 'deal-breakers', label: 'Deal Breakers', count: failedDealBreakers || undefined }] : []),
+  ...(openIssues.length > 0 ? [{ id: 'open-issues', label: 'Open Issues', count: openIssues.length }] : []),
+  ...(contracts.length > 0 ? [{ id: 'contracts', label: 'Contracts', count: contracts.length }] : []),
+  ...(auditHistory.length > 0 ? [{ id: 'audits', label: 'Audits', count: auditHistory.length }] : []),
+];
+---
+
+<Layout title={`${protocol} — Permission Analysis`} description={`Permission analysis and audit findings for ${protocol} on ${chain}`}>
+  <div
+    data-pagefind-body
+    data-pagefind-meta={`title:${protocol} — Permission Analysis`}
+  >
+  <meta data-pagefind-meta="type:protocol" />
+  <meta data-pagefind-meta={`protocol:${protocol}`} />
+  <meta data-pagefind-meta={`chain:${chain}`} />
+  <meta data-pagefind-meta={`gate:${dealBreakerGate}`} />
+  <meta data-pagefind-meta={`risk:${riskLevel}`} />
+  <a href="/" class="text-sm text-blue-400 hover:underline mb-4 inline-flex items-center gap-1">
+    <span aria-hidden="true">←</span>
+    <span>All protocols</span>
+  </a>
+
+  <ProtocolHero
+    protocol={protocol}
+    chain={chain}
+    auditDate={auditDate}
+    auditor={auditor}
+    type={protocolMeta?.type}
+    subtype={protocolMeta?.subtype}
+    tvlUsd={protocolMeta?.tvlUsd ?? null}
+    dealBreakerGate={dealBreakerGate}
+    riskLevel={riskLevel}
+    securityScore={securityScore}
+    securityGrade={securityGrade}
+    monitoringCadence={monitoringCadence}
+    complexityTier={complexityTier}
+    frameworkVersion={frameworkVersion}
+    failedDealBreakers={failedDealBreakers}
+    totalDealBreakers={totalDealBreakers}
+    openIssuesP0={openIssuesP0}
+    openIssuesTotal={openIssues.length}
+    contractsCount={contracts.length}
+    auditsCount={auditHistory.length}
+    auditsTier1Count={auditsTier1Count}
+    eoaSurfacesCount={eoaSurfaces.length}
+    findingsSummary={findingsSummary}
+    keyFindings={keyFindings}
+  />
+
+  {sections.length > 1 && <PageNav sections={sections} />}
+
+  {hasEoaControl && (
+    <aside class="mb-6 p-4 bg-red-950/40 border border-red-800/70 rounded-lg" role="alert">
+      <div class="flex items-start gap-3">
+        <span class="inline-flex w-6 h-6 shrink-0 items-center justify-center rounded-full bg-red-900/60 ring-1 ring-red-700 text-red-200 text-sm font-bold mt-0.5" aria-hidden="true">!</span>
+        <div>
+          <h3 class="font-semibold text-red-200">EOA Control Detected</h3>
+          <p class="text-sm text-red-200/90 mt-1">
+            Single externally-owned account controls{' '}
+            <span class="font-mono">{eoaSurfaceLabels.length > 0 ? eoaSurfaceLabels.join(', ') : 'core surfaces'}</span>.
+            A compromised key would enable instant fund loss with no on-chain delay.
+          </p>
+        </div>
+      </div>
+    </aside>
+  )}
+
+  <DealBreakerList dealBreakerDetails={dealBreakerDetails} />
+
+  <div class="space-y-6">
+    {adminControlMatrix.length > 0 && (
+      <AdminControlMatrix surfaces={adminControlMatrix} chain={chain} />
+    )}
+
+    {dealBreakerDetails.length > 0 && (
+      <section id="deal-breakers" class="bg-slate-800 rounded-lg p-6 scroll-mt-20">
+        <div class="flex items-baseline justify-between mb-4 flex-wrap gap-2">
+          <h2 class="text-xl font-bold">Deal Breaker Matrix</h2>
+          {dealBreakerSummary && (
+            <div class="flex flex-wrap gap-2 text-xs">
+              <span class={`px-2 py-1 rounded border ${dbStatusColor.PASS}`}>PASS {dealBreakerSummary.pass}</span>
+              <span class={`px-2 py-1 rounded border ${dbStatusColor.FAIL}`}>FAIL {dealBreakerSummary.fail}</span>
+              <span class={`px-2 py-1 rounded border ${dbStatusColor['N/A']}`}>N/A {dealBreakerSummary.na}</span>
+              <span class={`px-2 py-1 rounded border ${dbStatusColor.Inconclusive}`}>Inconclusive {dealBreakerSummary.inconclusive}</span>
+            </div>
+          )}
+        </div>
+        <div class="space-y-5">
+          {groupedDB.map(group => (
+            <div>
+              {group.category !== 'All' && (
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">{group.category}</h3>
+              )}
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-slate-700 text-slate-400 text-left">
+                      <th class="pb-2 pr-4 font-semibold">Item</th>
+                      <th class="pb-2 pr-4 font-semibold">Status</th>
+                      <th class="pb-2 font-semibold">Evidence</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.items.map(d => (
+                      <tr class="border-b border-slate-700/40 align-top">
+                        <td class="py-2 pr-4 font-medium">{d.item}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap">
+                          <span class={`px-2 py-0.5 rounded border text-xs font-semibold ${dbStatusColor[d.status] ?? dbStatusColor['N/A']}`}>
+                            {d.status}
+                          </span>
+                        </td>
+                        <td class="py-2 text-slate-400">{d.evidence}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {openIssues.length > 0 && (
+      <section id="open-issues" class="scroll-mt-20">
+        <OpenIssuesBoard issues={openIssues} />
+      </section>
+    )}
+
+    {contracts.length > 0 && (
+      <section id="contracts" class="scroll-mt-20">
+        <ContractList contracts={contracts} chain={chain} />
+      </section>
+    )}
+
+    {auditHistory.length > 0 && (
+      <section id="audits" class="bg-slate-800 rounded-lg p-6 scroll-mt-20">
+        <h2 class="text-xl font-bold mb-4">Audit History</h2>
+        <div class="space-y-3">
+          {auditHistory.map(a => {
+            const tierLabel = a.tier === 1 ? 'Tier 1' : a.tier === 2 ? 'Tier 2' : 'Tier 3';
+            const tierColor = a.tier === 1 ? 'bg-green-900/50 text-green-200 border-green-800'
+                           : a.tier === 2 ? 'bg-blue-900/50 text-blue-200 border-blue-800'
+                           : 'bg-slate-800 text-slate-300 border-slate-700';
+            const f = a.findings;
+            return (
+              <article class="p-4 bg-slate-900 rounded border border-slate-700">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class={`px-2 py-0.5 rounded border text-xs font-semibold ${tierColor}`}>{tierLabel}</span>
+                  <span class="font-semibold">{a.firm}</span>
+                  <span class="text-slate-500 text-sm" aria-hidden="true">·</span>
+                  <span class="text-sm text-slate-400">{a.date}</span>
+                  {a.scope && (<><span class="text-slate-500 text-sm" aria-hidden="true">·</span><span class="text-sm text-slate-400">{a.scope}</span></>)}
+                  {a.reportUrl && (
+                    <a href={a.reportUrl} target="_blank" rel="noopener noreferrer" class="ml-auto text-xs text-blue-400 hover:text-blue-300">Report ↗</a>
+                  )}
+                </div>
+                {f && (f.critical + f.high + f.medium + f.low > 0) && (
+                  <div class="mt-2 flex gap-3 text-xs">
+                    {f.critical > 0 && <span class="text-red-300">{f.critical} Critical</span>}
+                    {f.high > 0 && <span class="text-orange-300">{f.high} High</span>}
+                    {f.medium > 0 && <span class="text-yellow-200">{f.medium} Medium</span>}
+                    {f.low > 0 && <span class="text-green-300">{f.low} Low</span>}
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+
+        {(protocolMeta || bugBounty) && (
+          <div class="mt-6 pt-6 border-t border-slate-700/60 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            {protocolMeta && (
+              <div class="space-y-1.5">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Protocol</h3>
+                {protocolMeta.website && <div><span class="text-slate-500">Website:</span> <a href={protocolMeta.website} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">{protocolMeta.website} ↗</a></div>}
+                {protocolMeta.docs && <div><span class="text-slate-500">Docs:</span> <a href={protocolMeta.docs} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">{protocolMeta.docs} ↗</a></div>}
+                {protocolMeta.github && <div><span class="text-slate-500">GitHub:</span> <a href={protocolMeta.github} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">{protocolMeta.github} ↗</a></div>}
+                {protocolMeta.launchDate && <div><span class="text-slate-500">Launched:</span> {protocolMeta.launchDate}</div>}
+                {protocolMeta.tvlSource && <div><span class="text-slate-500">TVL Source:</span> {protocolMeta.tvlSource}</div>}
+              </div>
+            )}
+            <div class="space-y-1.5">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Operations</h3>
+              <div>
+                <span class="text-slate-500">Bug Bounty:</span>{' '}
+                {bugBounty ? (
+                  <span class="text-green-300">
+                    {bugBounty.provider}
+                    {bugBounty.maxBountyUsd ? ` — up to $${bugBounty.maxBountyUsd.toLocaleString()}` : ''}
+                    {bugBounty.url ? <> — <a href={bugBounty.url} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">link ↗</a></> : null}
+                  </span>
+                ) : (
+                  <span class="text-slate-400">None detected</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+    )}
+
+    {accessControlRoles.length > 0 && (
+      <section class="bg-slate-800 rounded-lg p-6">
+        <details class="group">
+          <summary class="cursor-pointer flex items-center justify-between gap-2 list-none">
+            <span class="font-semibold text-slate-200">All role assignments ({accessControlRoles.length})</span>
+            <span class="text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true">▾</span>
+          </summary>
+          <div class="overflow-x-auto mt-4">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-slate-700 text-slate-400 text-left">
+                  <th class="pb-2 pr-4 font-semibold">Contract</th>
+                  <th class="pb-2 pr-4 font-semibold">Role</th>
+                  <th class="pb-2 pr-4 font-semibold">Holder</th>
+                  <th class="pb-2 font-semibold">Powers</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accessControlRoles.map(r => (
+                  <tr class="border-b border-slate-700/40 align-top">
+                    <td class="py-2 pr-4 font-medium">{r.contract}</td>
+                    <td class="py-2 pr-4 font-mono text-xs">{r.role}</td>
+                    <td class={`py-2 pr-4 ${r.holder.includes('EOA') ? 'text-red-300' : r.holder.includes('Safe') || r.holder.includes('multisig') ? 'text-green-300' : 'text-slate-300'}`}>{r.holder}</td>
+                    <td class="py-2 text-xs text-slate-400">{r.powers}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+    )}
+
+  </div>
+
+  {relatedNotes.length > 0 && (
+    <section class="mt-10 pt-6 border-t border-slate-700/60">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Related notes</h2>
+        <a href="/notes" class="text-xs text-blue-400 hover:text-blue-300">All notes →</a>
+      </div>
+      <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {relatedNotes.map(note => {
+          const date = note.data.date.toISOString().slice(0, 10);
+          return (
+            <li>
+              <a href={`/notes/${note.id}`} class="block h-full p-4 bg-slate-800/60 rounded-lg border border-slate-700 hover:border-blue-500 transition-colors">
+                <time datetime={date} class="text-[11px] uppercase tracking-wider text-slate-500 font-mono">{date}</time>
+                <div class="text-sm font-semibold text-slate-100 mt-1 leading-snug">{note.data.title}</div>
+                {note.data.description && (
+                  <p class="text-xs text-slate-400 mt-2 leading-relaxed line-clamp-2">{note.data.description}</p>
+                )}
+                <div class="flex flex-wrap items-center gap-1 mt-2 text-[11px]">
+                  {note.data.tags.slice(0, 3).map(tag => (
+                    <span class="px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-700">{tag}</span>
+                  ))}
+                </div>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
+
+  <section class="mt-10 pt-6 border-t border-slate-700/60">
+    <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">All reports for {protocol}</h2>
+    <ul class="space-y-2">
+      {allReports.map(r => (
+        <li>
+          <a href={`/reports/${r.data.protocolSlug}/${r.data.slug}`} class="block p-3 bg-slate-800/60 rounded border border-slate-700 hover:border-blue-500 transition-colors">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-sm">{r.data.auditDate} — {r.data.auditor}</span>
+              <span class={`text-xs px-2 py-0.5 rounded font-medium ${r.data.riskLevel === 'Critical' ? 'bg-red-600' : r.data.riskLevel === 'High' ? 'bg-orange-600' : r.data.riskLevel === 'Medium' ? 'bg-yellow-600 text-black' : 'bg-green-600'}`}>{r.data.riskLevel}</span>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+  </div>
+</Layout>

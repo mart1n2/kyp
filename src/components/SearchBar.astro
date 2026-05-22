@@ -1,0 +1,208 @@
+---
+// Pagefind search — global, lives in the layout header.
+// Index is built by postbuild.mjs (Pagefind only available after `npm run build`).
+---
+
+<div id="search-container" class="relative w-full max-w-md">
+  <div class="relative">
+    <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-slate-500" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-3.6-3.6"></path></svg>
+    </span>
+    <input
+      type="search"
+      id="search"
+      role="combobox"
+      aria-expanded="false"
+      aria-controls="pagefind-search"
+      aria-autocomplete="list"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="Search reports, protocols, notes…"
+      class="w-full pl-8 pr-12 py-1.5 bg-slate-900/60 border border-slate-700 rounded-md text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:bg-slate-900"
+    />
+    <kbd id="search-shortcut-hint" class="pointer-events-none absolute inset-y-0 right-2 my-auto h-5 px-1.5 inline-flex items-center text-[10px] font-mono text-slate-500 bg-slate-800 border border-slate-700 rounded">⌘K</kbd>
+  </div>
+  <div
+    id="pagefind-search"
+    role="listbox"
+    class="absolute z-50 w-[min(28rem,calc(100vw-2rem))] right-0 mt-1.5 bg-slate-900 border border-slate-700 rounded-md shadow-2xl hidden max-h-[28rem] overflow-y-auto"
+  ></div>
+</div>
+
+<script is:inline>
+(function() {
+  var input = document.getElementById('search');
+  var dropdown = document.getElementById('pagefind-search');
+  var container = document.getElementById('search-container');
+  if (!input || !dropdown || !container) return;
+
+  var searchTimeout;
+  var activeIndex = -1;
+  var lastQuery = '';
+
+  var TYPE_BADGE = {
+    report:   { label: 'REPORT',   cls: 'bg-blue-500/15 text-blue-300 border-blue-500/30' },
+    protocol: { label: 'PROTOCOL', cls: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30' },
+    note:     { label: 'NOTE',     cls: 'bg-slate-500/15 text-slate-300 border-slate-500/30' },
+  };
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Module-scoped loader: dynamic import populates window.Pagefind.
+  var loaderScript = document.createElement('script');
+  loaderScript.type = 'module';
+  loaderScript.textContent =
+    "try { const p = await import('/pagefind/pagefind.js'); await p.init(); window.Pagefind = p; } catch (e) { window.__PagefindUnavailable = true; }";
+  // Lazy: only inject when user actually focuses or types
+  function ensureLoader() {
+    if (loaderScript.parentNode || window.Pagefind || window.__PagefindUnavailable) return;
+    document.head.appendChild(loaderScript);
+  }
+
+  function awaitPagefind() {
+    return new Promise(function(resolve, reject) {
+      ensureLoader();
+      if (window.Pagefind) { resolve(window.Pagefind); return; }
+      if (window.__PagefindUnavailable) { reject(new Error('unavailable')); return; }
+      var tries = 0;
+      (function poll() {
+        if (window.Pagefind) { resolve(window.Pagefind); return; }
+        if (window.__PagefindUnavailable) { reject(new Error('unavailable')); return; }
+        if (++tries > 60) { reject(new Error('timeout')); return; }
+        setTimeout(poll, 50);
+      })();
+    });
+  }
+
+  function setOpen(open) {
+    if (open) {
+      dropdown.classList.remove('hidden');
+      input.setAttribute('aria-expanded', 'true');
+    } else {
+      dropdown.classList.add('hidden');
+      input.setAttribute('aria-expanded', 'false');
+      activeIndex = -1;
+    }
+  }
+
+  function setMessage(html) {
+    dropdown.innerHTML = '<div class="p-3 text-sm text-slate-400">' + html + '</div>';
+    setOpen(true);
+  }
+
+  function renderResults(items) {
+    if (items.length === 0) {
+      setMessage('No results found.');
+      return;
+    }
+    var html = items.map(function(item, i) {
+      var type = (item.meta && item.meta.type) || 'page';
+      var badge = TYPE_BADGE[type] || { label: type.toUpperCase(), cls: 'bg-slate-500/15 text-slate-300 border-slate-500/30' };
+      var protocol = item.meta && item.meta.protocol ? escapeHtml(item.meta.protocol) : '';
+      var chain = item.meta && item.meta.chain ? escapeHtml(item.meta.chain) : '';
+      var title = escapeHtml(item.meta && item.meta.title ? item.meta.title : 'Untitled');
+      var context = [protocol, chain].filter(Boolean).join(' · ');
+      // excerpt is already HTML with <mark> tags from pagefind; do not escape
+      var excerpt = item.excerpt || '';
+      return (
+        '<a href="' + escapeHtml(item.url) + '" data-result-index="' + i + '" ' +
+          'class="search-result block px-3 py-2.5 border-b border-slate-800 last:border-0 hover:bg-slate-800/60 focus:bg-slate-800 focus:outline-none">' +
+          '<div class="flex items-center gap-2 mb-0.5">' +
+            '<span class="inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold tracking-wider rounded border ' + badge.cls + '">' + badge.label + '</span>' +
+            (context ? '<span class="text-[11px] text-slate-500">' + context + '</span>' : '') +
+          '</div>' +
+          '<div class="text-sm font-medium text-slate-100 leading-snug">' + title + '</div>' +
+          (excerpt ? '<div class="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">' + excerpt + '</div>' : '') +
+        '</a>'
+      );
+    }).join('');
+    dropdown.innerHTML = html;
+    setOpen(true);
+    activeIndex = -1;
+  }
+
+  function highlightActive() {
+    var rows = dropdown.querySelectorAll('.search-result');
+    rows.forEach(function(row, i) {
+      if (i === activeIndex) {
+        row.classList.add('bg-slate-800');
+        row.scrollIntoView({ block: 'nearest' });
+      } else {
+        row.classList.remove('bg-slate-800');
+      }
+    });
+  }
+
+  function runSearch(query) {
+    if (query === lastQuery) return;
+    lastQuery = query;
+    if (query.length < 2) { setOpen(false); return; }
+    setMessage('Searching…');
+    awaitPagefind().then(function(Pagefind) {
+      return Pagefind.search(query);
+    }).then(function(results) {
+      if (!results) { setMessage('No results found.'); return; }
+      var slice = results.results.slice(0, 8);
+      return Promise.all(slice.map(function(r) { return r.data(); })).then(function(items) {
+        renderResults(items);
+      });
+    }).catch(function(err) {
+      if (err && err.message === 'unavailable') {
+        setMessage('Search available after <code class="text-slate-300">npm run build</code>.');
+      } else {
+        setMessage('Search unavailable.');
+      }
+    });
+  }
+
+  input.addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    var query = e.target.value.trim();
+    searchTimeout = setTimeout(function() { runSearch(query); }, 200);
+  });
+
+  input.addEventListener('focus', function() { ensureLoader(); });
+
+  input.addEventListener('keydown', function(e) {
+    var rows = dropdown.querySelectorAll('.search-result');
+    if (e.key === 'ArrowDown') {
+      if (rows.length === 0) return;
+      e.preventDefault();
+      activeIndex = (activeIndex + 1) % rows.length;
+      highlightActive();
+    } else if (e.key === 'ArrowUp') {
+      if (rows.length === 0) return;
+      e.preventDefault();
+      activeIndex = (activeIndex - 1 + rows.length) % rows.length;
+      highlightActive();
+    } else if (e.key === 'Enter') {
+      if (activeIndex >= 0 && rows[activeIndex]) {
+        e.preventDefault();
+        window.location.href = rows[activeIndex].getAttribute('href');
+      }
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+      input.blur();
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!container.contains(e.target)) setOpen(false);
+  });
+
+  // Global Cmd/Ctrl+K shortcut
+  document.addEventListener('keydown', function(e) {
+    var mod = e.metaKey || e.ctrlKey;
+    if (mod && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      input.focus();
+      input.select();
+    }
+  });
+
+})();
+</script>

@@ -1,0 +1,141 @@
+---
+interface Surface {
+  surface: string;
+  controller: string;
+  controllerType: 'EOA' | 'Multisig' | 'Governance' | 'Timelock' | 'Contract' | 'Unknown';
+  multisigConfig?: string;
+  delayHours: number;
+  worstCase: string;
+}
+
+interface Props {
+  surfaces: Surface[];
+  chain?: string;
+}
+
+const { surfaces, chain = 'Ethereum' } = Astro.props;
+
+const explorerBase: Record<string, string> = {
+  Ethereum: 'https://etherscan.io/address/',
+  BSC: 'https://bscscan.com/address/',
+  Arbitrum: 'https://arbiscan.io/address/',
+  Optimism: 'https://optimistic.etherscan.io/address/',
+  Polygon: 'https://polygonscan.com/address/',
+  Base: 'https://basescan.org/address/',
+  Avalanche: 'https://snowtrace.io/address/',
+};
+const explorerUrl = explorerBase[chain] || 'https://etherscan.io/address/';
+
+const typeColor: Record<string, string> = {
+  EOA: 'bg-red-900/40 text-red-200 border-red-800',
+  Multisig: 'bg-green-900/40 text-green-200 border-green-800',
+  Governance: 'bg-blue-900/40 text-blue-200 border-blue-800',
+  Timelock: 'bg-purple-900/40 text-purple-200 border-purple-800',
+  Contract: 'bg-slate-800 text-slate-300 border-slate-700',
+  Unknown: 'bg-slate-800 text-slate-400 border-slate-700',
+};
+
+function formatDelay(hours: number) {
+  if (hours <= 0) return { text: 'Instant', color: 'text-red-300' };
+  if (hours < 24)  return { text: `${hours}h`, color: 'text-yellow-300' };
+  if (hours < 48)  return { text: `${hours}h`, color: 'text-yellow-200' };
+  return { text: `${hours}h`, color: 'text-green-300' };
+}
+
+function shortAddr(s: string) {
+  const m = s.match(/0x[a-fA-F0-9]{40}/);
+  if (!m) return s;
+  return `${m[0].slice(0, 6)}…${m[0].slice(-4)}`;
+}
+---
+
+<section id="trust" class="bg-slate-800 rounded-lg p-6 scroll-mt-20">
+  <div class="flex items-baseline justify-between mb-4 flex-wrap gap-2">
+    <h2 class="text-xl font-bold">Trust Surfaces</h2>
+    <span class="text-xs text-slate-500">Who can move funds, and how fast</span>
+  </div>
+
+  {surfaces.length > 0 ? (
+    <>
+      <!-- Desktop: table -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-700 text-slate-400 text-left">
+              <th class="pb-3 pr-4 font-semibold">Surface</th>
+              <th class="pb-3 pr-4 font-semibold">Controller</th>
+              <th class="pb-3 pr-4 font-semibold">Type</th>
+              <th class="pb-3 pr-4 font-semibold whitespace-nowrap">Min Delay</th>
+              <th class="pb-3 font-semibold">Worst Case</th>
+            </tr>
+          </thead>
+          <tbody>
+            {surfaces.map(s => {
+              const delay = formatDelay(s.delayHours);
+              const cleanAddr = s.controller.match(/0x[a-fA-F0-9]{40}/)?.[0];
+              return (
+                <tr class="border-b border-slate-700/60 align-top hover:bg-slate-900/30 transition-colors">
+                  <td class="py-3 pr-4 font-medium">{s.surface}</td>
+                  <td class="py-3 pr-4 font-mono text-xs">
+                    {cleanAddr ? (
+                      <a href={`${explorerUrl}${cleanAddr}`} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">
+                        {s.controller} ↗
+                      </a>
+                    ) : (
+                      <span>{s.controller}</span>
+                    )}
+                  </td>
+                  <td class="py-3 pr-4">
+                    <span class={`inline-block px-2 py-0.5 rounded border text-xs font-semibold ${typeColor[s.controllerType] ?? typeColor.Unknown}`}>
+                      {s.controllerType}{s.multisigConfig ? ` ${s.multisigConfig}` : ''}
+                    </span>
+                  </td>
+                  <td class={`py-3 pr-4 font-semibold whitespace-nowrap ${delay.color}`}>{delay.text}</td>
+                  <td class="py-3 text-slate-300">{s.worstCase}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile: cards -->
+      <div class="md:hidden space-y-3">
+        {surfaces.map(s => {
+          const delay = formatDelay(s.delayHours);
+          const cleanAddr = s.controller.match(/0x[a-fA-F0-9]{40}/)?.[0];
+          return (
+            <div class="rounded-lg p-4 bg-slate-900 border border-slate-700">
+              <div class="flex items-start justify-between gap-3 mb-2">
+                <div class="font-medium text-slate-100 leading-snug">{s.surface}</div>
+                <span class={`shrink-0 inline-block px-2 py-0.5 rounded border text-[11px] font-semibold ${typeColor[s.controllerType] ?? typeColor.Unknown}`}>
+                  {s.controllerType}{s.multisigConfig ? ` ${s.multisigConfig}` : ''}
+                </span>
+              </div>
+              <div class="text-xs space-y-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-500 w-20 shrink-0">Controller</span>
+                  {cleanAddr ? (
+                    <a href={`${explorerUrl}${cleanAddr}`} target="_blank" rel="noopener noreferrer" class="font-mono text-blue-400 hover:text-blue-300">{shortAddr(s.controller)} ↗</a>
+                  ) : (
+                    <span class="font-mono text-slate-300">{s.controller}</span>
+                  )}
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-500 w-20 shrink-0">Min delay</span>
+                  <span class={`font-semibold ${delay.color}`}>{delay.text}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-slate-500 w-20 shrink-0">Worst case</span>
+                  <span class="text-slate-300">{s.worstCase}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  ) : (
+    <p class="text-slate-400">No trust-surface data available</p>
+  )}
+</section>

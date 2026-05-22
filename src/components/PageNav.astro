@@ -1,0 +1,105 @@
+---
+interface Section {
+  id: string;
+  label: string;
+  count?: number;
+}
+
+interface Props {
+  sections: Section[];
+}
+
+const { sections } = Astro.props;
+---
+
+<nav
+  id="page-nav"
+  class="sticky top-0 z-30 -mx-4 sm:mx-0 mb-6 bg-slate-900/85 backdrop-blur border-y border-slate-700/60"
+  aria-label="Page sections"
+>
+  <div class="overflow-x-auto">
+    <ul class="flex gap-1 px-4 sm:px-2 py-2 whitespace-nowrap text-sm">
+      {sections.map(s => (
+        <li>
+          <a
+            href={`#${s.id}`}
+            data-page-nav-link
+            data-section={s.id}
+            class="page-nav-link inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <span>{s.label}</span>
+            {typeof s.count === 'number' && (
+              <span class="text-xs text-slate-500 page-nav-count">{s.count}</span>
+            )}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .page-nav-link.is-active {
+    background-color: rgb(30 41 59); /* slate-800 */
+    color: rgb(241 245 249);          /* slate-100 */
+  }
+  .page-nav-link.is-active .page-nav-count {
+    color: rgb(148 163 184);          /* slate-400 */
+  }
+</style>
+
+<script>
+  (function () {
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-page-nav-link]'));
+    if (links.length === 0) return;
+
+    const ids = links.map(l => l.dataset.section).filter(Boolean) as string[];
+    const sections = ids
+      .map(id => document.getElementById(id))
+      .filter((el): el is HTMLElement => !!el);
+
+    if (sections.length === 0) return;
+
+    const setActive = (id: string) => {
+      links.forEach(l => {
+        l.classList.toggle('is-active', l.dataset.section === id);
+      });
+    };
+
+    let visibleSet = new Set<string>();
+    const observer = new IntersectionObserver(
+      entries => {
+        for (const e of entries) {
+          if (e.isIntersecting) visibleSet.add(e.target.id);
+          else visibleSet.delete(e.target.id);
+        }
+        // Pick the first id (in document order) that is visible.
+        for (const id of ids) {
+          if (visibleSet.has(id)) {
+            setActive(id);
+            return;
+          }
+        }
+      },
+      { rootMargin: '-25% 0px -60% 0px', threshold: 0 }
+    );
+
+    sections.forEach(s => observer.observe(s));
+
+    // Smooth scroll with offset for the sticky nav itself.
+    links.forEach(link => {
+      link.addEventListener('click', e => {
+        const id = link.dataset.section;
+        if (!id) return;
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+        const navHeight = (document.getElementById('page-nav')?.offsetHeight ?? 0) + 8;
+        const top = target.getBoundingClientRect().top + window.scrollY - navHeight;
+        window.scrollTo({ top, behavior: 'smooth' });
+        history.replaceState(null, '', `#${id}`);
+        setActive(id);
+      });
+    });
+  })();
+</script>

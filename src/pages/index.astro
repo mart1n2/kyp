@@ -1,0 +1,185 @@
+---
+import Layout from '../components/Layout.astro';
+import ProtocolCard from '../components/ProtocolCard.astro';
+import FilterPanel from '../components/FilterPanel.astro';
+import NoteKindBadge from '../components/NoteKindBadge.astro';
+import { getCollection } from 'astro:content';
+import { parseAuditDate, relativeAge } from '../utils/format';
+
+const reports = await getCollection('reports');
+const compareNotes = (
+  a: { data: { date: Date; updated?: Date } },
+  b: { data: { date: Date; updated?: Date } },
+) => {
+  const aTime = (a.data.updated ?? a.data.date).getTime();
+  const bTime = (b.data.updated ?? b.data.date).getTime();
+  if (aTime !== bTime) return bTime - aTime;
+  // tiebreak: a freshly-updated note ranks above a same-date original publish
+  if (a.data.updated && !b.data.updated) return -1;
+  if (!a.data.updated && b.data.updated) return 1;
+  return 0;
+};
+const recentNotes = (await getCollection('notes', ({ data }) => !data.draft))
+  .sort(compareNotes)
+  .slice(0, 3);
+
+const protocolMap = new Map();
+for (const report of reports) {
+  const pSlug = report.data.protocolSlug;
+  if (!protocolMap.has(pSlug) || report.data.auditDate > protocolMap.get(pSlug).data.auditDate) {
+    protocolMap.set(pSlug, report);
+  }
+}
+
+const protocols = Array.from(protocolMap.values()).sort((a, b) => {
+  return a.data.protocol.localeCompare(b.data.protocol);
+});
+
+// Header KPIs
+const totalProtocols = protocols.length;
+const chainsCovered = new Set(protocols.map(p => p.data.chain)).size;
+const failingGates = protocols.filter(p => p.data.dealBreakerGate === 'Fail').length;
+
+const latestAuditTimestamp = protocols
+  .map(p => parseAuditDate(p.data.auditDate)?.getTime() ?? 0)
+  .reduce((a, b) => Math.max(a, b), 0);
+const latestAuditDate = latestAuditTimestamp ? new Date(latestAuditTimestamp).toISOString().slice(0, 10) : null;
+const latestAuditAge = latestAuditDate ? relativeAge(latestAuditDate) : null;
+
+// Per-card precomputed stats
+const cards = protocols.map(report => {
+  const data = report.data;
+  const failedDealBreakers = (data.dealBreakerDetails ?? []).filter((d: any) => d.status === 'FAIL').length;
+  const eoaSurfaces = (data.adminControlMatrix ?? []).filter((s: any) => s.controllerType === 'EOA').length;
+  return {
+    data,
+    failedDealBreakers,
+    eoaSurfaces,
+    contractsCount: (data.contracts ?? []).length,
+    auditsCount: (data.auditHistory ?? []).length,
+  };
+});
+---
+
+<Layout title="Know Your Protocol — DeFi Permission Analysis" description="Permission analysis and audit findings for DeFi protocols. Technical reference only — not financial advice.">
+  <section class="mb-10">
+    <div class="inline-flex items-center gap-2 mb-3 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-medium text-blue-300 uppercase tracking-wider">
+      <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"></span>
+      Live · {totalProtocols} protocols indexed
+    </div>
+    <h1 class="text-4xl sm:text-5xl font-extrabold mb-3 tracking-tight bg-gradient-to-br from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">Know Your Protocol</h1>
+    <p class="text-slate-400 max-w-2xl leading-relaxed">
+      Permission analysis and audit findings for DeFi protocols. Technical reference only — not financial advice.
+    </p>
+
+    <div class="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="kyp-kpi">
+        <div class="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-medium">Protocols Indexed</div>
+        <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight font-mono">{totalProtocols}</div>
+      </div>
+      <div class="kyp-kpi">
+        <div class="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-medium">Chains Covered</div>
+        <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight font-mono">{chainsCovered}</div>
+      </div>
+      <div class="kyp-kpi">
+        <div class="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-medium">Gate: Fail</div>
+        <div class={`text-3xl font-extrabold mt-1.5 tracking-tight font-mono ${failingGates > 0 ? 'text-red-300' : 'text-slate-50'}`}>{failingGates}</div>
+      </div>
+      <div class="kyp-kpi">
+        <div class="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-medium">Latest Audit</div>
+        <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight">{latestAuditAge ?? '—'}</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
+    <div class="lg:col-span-1">
+      <FilterPanel protocols={protocols} />
+    </div>
+    <div class="lg:col-span-3">
+      <div class="flex items-center justify-between mb-3 text-sm text-slate-400">
+        <span id="match-count">{totalProtocols} protocol{totalProtocols === 1 ? '' : 's'}</span>
+      </div>
+
+      <div id="protocol-grid" class="grid gap-3">
+        {cards.map(c => (
+          <ProtocolCard
+            protocol={c.data.protocol}
+            chain={c.data.chain}
+            riskLevel={c.data.riskLevel}
+            securityGrade={c.data.securityGrade}
+            securityScore={c.data.securityScore}
+            auditDate={c.data.auditDate}
+            slug={c.data.protocolSlug}
+            dealBreakerGate={c.data.dealBreakerGate}
+            failedDealBreakers={c.failedDealBreakers}
+            eoaSurfaces={c.eoaSurfaces}
+            contractsCount={c.contractsCount}
+            auditsCount={c.auditsCount}
+          />
+        ))}
+      </div>
+
+      <div id="empty-state" class="hidden p-8 bg-slate-800/40 border border-dashed border-slate-700 rounded-lg text-center">
+        <div class="text-slate-300 font-semibold mb-1">No protocols match the current filters</div>
+        <p class="text-sm text-slate-500">Try clearing one or more filters.</p>
+      </div>
+
+      {totalProtocols === 0 && (
+        <div class="p-8 bg-slate-800/40 border border-dashed border-slate-700 rounded-lg text-center">
+          <div class="text-slate-300 font-semibold mb-1">No protocols indexed yet</div>
+          <p class="text-sm text-slate-500">Reports added to <code class="text-slate-400">src/content/reports/</code> will appear here.</p>
+        </div>
+      )}
+    </div>
+  </div>
+
+  {recentNotes.length > 0 && (
+    <section class="mt-12 pt-8 border-t border-slate-700/60">
+      <div class="flex items-baseline justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-bold">Recent notes</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Security research, writeups, and short essays.</p>
+        </div>
+        <a href="/notes" class="text-sm text-blue-400 hover:text-blue-300">View all →</a>
+      </div>
+      <ul class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {recentNotes.map(note => {
+          const origDate = note.data.date.toISOString().slice(0, 10);
+          const updatedDate = note.data.updated ? note.data.updated.toISOString().slice(0, 10) : null;
+          const effectiveDate = updatedDate ?? origDate;
+          const kindClass = note.data.kind === 'incident' ? 'is-incident' : note.data.kind === 'research' ? 'is-research' : '';
+          return (
+            <li>
+              <a
+                href={`/notes/${note.id}`}
+                class={`kyp-card ${kindClass} block h-full p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`}
+              >
+                {note.data.kind !== 'essay' && (
+                  <div class="mb-2">
+                    <NoteKindBadge kind={note.data.kind} incident={note.data.incident} size="sm" />
+                  </div>
+                )}
+                <div class="flex items-baseline gap-1.5">
+                  <time datetime={effectiveDate} class="text-[11px] uppercase tracking-wider text-slate-500 font-mono">{effectiveDate}</time>
+                  {updatedDate && updatedDate !== origDate && (
+                    <span class="text-[10px] text-slate-600 font-mono">· upd</span>
+                  )}
+                </div>
+                <h3 class="text-sm font-semibold text-slate-100 mt-1 leading-snug">{note.data.title}</h3>
+                {note.data.description && (
+                  <p class="text-xs text-slate-400 mt-2 leading-relaxed line-clamp-3">{note.data.description}</p>
+                )}
+                <div class="flex flex-wrap items-center gap-1 mt-3 text-[11px]">
+                  {note.data.tags.slice(0, 3).map(tag => (
+                    <span class="px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-700">{tag}</span>
+                  ))}
+                </div>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
+</Layout>

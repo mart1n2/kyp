@@ -1,0 +1,76 @@
+---
+interface Props {
+  markdown: string;
+}
+
+const { markdown } = Astro.props;
+
+const headings = markdown
+  .split('\n')
+  .filter(line => line.match(/^#{2,3}\s/))
+  .map(line => {
+    const level = line.match(/^(#{2,3})/)?.[1].length || 2;
+    const text = line.replace(/^#{2,3}\s/, '').trim();
+    const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+    return { level, text, id };
+  });
+---
+
+<nav class="sticky top-4" aria-label="Report contents">
+  <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Contents</h3>
+  <ul class="space-y-1 text-sm border-l border-slate-700">
+    {headings.map(heading => (
+      <li class={heading.level === 3 ? 'ml-3' : ''}>
+        <a
+          href={`#${heading.id}`}
+          data-toc-link
+          data-section={heading.id}
+          class="toc-link block pl-3 -ml-px py-1 border-l border-transparent text-slate-400 hover:text-white transition-colors"
+        >
+          {heading.text}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .toc-link.is-active {
+    color: rgb(241 245 249);
+    border-left-color: rgb(59 130 246); /* blue-500 */
+  }
+</style>
+
+<script>
+  (function () {
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
+    if (links.length === 0) return;
+
+    const ids = links.map(l => l.dataset.section).filter(Boolean) as string[];
+    const setActive = (id: string) => {
+      links.forEach(l => l.classList.toggle('is-active', l.dataset.section === id));
+    };
+
+    const visible = new Set<string>();
+    const observer = new IntersectionObserver(
+      entries => {
+        for (const e of entries) {
+          if (e.isIntersecting) visible.add(e.target.id);
+          else visible.delete(e.target.id);
+        }
+        for (const id of ids) {
+          if (visible.has(id)) {
+            setActive(id);
+            return;
+          }
+        }
+      },
+      { rootMargin: '-20% 0px -70% 0px', threshold: 0 }
+    );
+
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+  })();
+</script>

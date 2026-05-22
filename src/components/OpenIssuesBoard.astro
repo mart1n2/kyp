@@ -1,0 +1,71 @@
+---
+interface Issue {
+  issue: string;
+  category: string;
+  severity: 'Critical' | 'High' | 'Medium' | 'Low';
+  impact: string;
+  recommendation: string;
+  priority: 'P0' | 'P1' | 'P2';
+  timeline: string;
+}
+
+interface Props {
+  issues: Issue[];
+}
+
+const { issues } = Astro.props;
+
+const priorityOrder = { P0: 0, P1: 1, P2: 2 };
+const sorted = [...issues].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+const priorityStyle: Record<string, string> = {
+  P0: 'bg-red-900/50 text-red-200 border-red-700',
+  P1: 'bg-orange-900/50 text-orange-200 border-orange-700',
+  P2: 'bg-yellow-900/40 text-yellow-200 border-yellow-700',
+};
+const severityStyle: Record<string, string> = {
+  Critical: 'text-red-400',
+  High: 'text-orange-400',
+  Medium: 'text-yellow-300',
+  Low: 'text-green-300',
+};
+
+const counts = sorted.reduce(
+  (acc, i) => ({ ...acc, [i.priority]: (acc[i.priority] || 0) + 1 }),
+  {} as Record<string, number>
+);
+---
+
+<div class="bg-slate-800 rounded-lg p-6">
+  <div class="flex items-baseline justify-between mb-4">
+    <h2 class="text-xl font-bold">Open Issues</h2>
+    <div class="flex gap-2 text-xs">
+      {(['P0','P1','P2'] as const).map(p =>
+        counts[p] ? (
+          <span class={`px-2 py-1 rounded border font-semibold ${priorityStyle[p]}`}>{p}: {counts[p]}</span>
+        ) : null
+      )}
+    </div>
+  </div>
+
+  {sorted.length > 0 ? (
+    <ul class="space-y-3">
+      {sorted.map(issue => (
+        <li class="p-4 bg-slate-900 rounded border border-slate-700">
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class={`px-2 py-0.5 rounded border text-xs font-semibold ${priorityStyle[issue.priority]}`}>{issue.priority}</span>
+            <span class={`text-xs font-semibold ${severityStyle[issue.severity]}`}>{issue.severity}</span>
+            <span class="text-xs text-slate-500">·</span>
+            <span class="text-xs text-slate-400">{issue.category}</span>
+            <span class="ml-auto text-xs text-slate-400">Timeline: <span class="text-slate-200">{issue.timeline}</span></span>
+          </div>
+          <div class="font-semibold text-slate-100">{issue.issue}</div>
+          <div class="text-sm text-slate-400 mt-1"><span class="text-slate-500">Impact:</span> {issue.impact}</div>
+          <div class="text-sm text-slate-300 mt-1"><span class="text-slate-500">Recommendation:</span> {issue.recommendation}</div>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p class="text-slate-400">No open issues recorded</p>
+  )}
+</div>

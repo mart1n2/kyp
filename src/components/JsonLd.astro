@@ -1,0 +1,40 @@
+---
+interface Props {
+  type: 'protocol' | 'report';
+  data: Record<string, any>;
+}
+
+const { type, data } = Astro.props;
+
+let jsonLd = {};
+
+if (type === 'protocol') {
+  jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": data.protocol,
+    "description": `DeFi protocol on ${data.chain} - Security analysis and audit reports`,
+    "url": Astro.url.pathname,
+    "knowsAbout": data.chain,
+  };
+} else if (type === 'report') {
+  jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": `${data.protocol} Security Audit Report`,
+    "description": `Security audit report for ${data.protocol} on ${data.chain}`,
+    "datePublished": data.auditDate,
+    "author": {
+      "@type": "Organization",
+      "name": data.auditor,
+    },
+    "about": {
+      "@type": "SoftwareApplication",
+      "name": data.protocol,
+      "applicationCategory": "FinanceApplication",
+    },
+  };
+}
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

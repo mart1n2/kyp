@@ -1,0 +1,215 @@
+{
+  "slug": "altura-hyperevm-2026-04-07",
+  "protocol": "Altura Trade",
+  "protocolSlug": "altura-trade",
+  "chain": "HyperEVM",
+  "auditDate": "04/07/2026",
+  "auditor": "Automated Pipeline",
+  "complexityTier": "Simple",
+  "frameworkVersion": "V1.2.3",
+
+  "securityScore": 0,
+  "securityGrade": "F",
+  "riskLevel": "Critical",
+  "dealBreakers": "2 Failed — Gate not cleared",
+
+  "dealBreakerGate": "Fail",
+  "monitoringCadence": "N/A",
+
+  "findingsSummary": "Two deal breakers triggered. The OPERATOR EOA can drain the entire vault balance (~$12M) via moveAssets() with no multisig, no timelock, and no per-call cap. The Oracle REPORTER EOA can set arbitrary share prices because the rate limiter (maxPpsMoveBps) is configured to 0 (disabled) and the ADMIN EOA can re-disable it at any time. All six privileged roles across NavVault and NavOracle are EOAs — no multisig, no DAO, no on-chain governance. The deal-breaker gate fails on EOA fund control and manual price control.",
+
+  "keyFindings": [
+    "OPERATOR EOA can drain entire ~$12M vault via moveAssets() — no multisig, no timelock, no cap",
+    "Oracle REPORTER EOA can set arbitrary PPS via reportNav(); maxPpsMoveBps = 0 (rate limiter disabled)",
+    "ADMIN EOA can change liquidityRecipient instantly via setLiquidityRecipient() — no timelock",
+    "ADMIN EOA can re-disable rate limiter at any time via setConfig() on the oracle",
+    "All 6 privileged roles across vault + oracle are EOAs — no multisig, no DAO, no governance",
+    "Three external audits (Adevarlabs, Omniscia, Sherlock) and clean Slither — issues are operational, not code-level"
+  ],
+
+  "dealBreakerSummary": { "pass": 12, "fail": 2, "na": 9, "inconclusive": 0 },
+
+  "dealBreakerDetails": [
+    { "item": "EOA Upgrade Control",            "status": "N/A",  "category": "Access Control & Governance", "evidence": "Not a proxy. No upgrade mechanism." },
+    { "item": "EOA Fund Control",               "status": "FAIL", "category": "Access Control & Governance", "evidence": "OPERATOR (EOA 0x0398...8813) calls moveAssets() to transfer all vault funds to liquidityRecipient (EOA 0xFC45...0ADf). ADMIN (EOA 0xbF33...ef6E) can change recipient instantly. No multisig, no timelock, no cap." },
+    { "item": ">60% Governance Centralization", "status": "N/A",  "category": "Access Control & Governance", "evidence": "No governance token." },
+    { "item": "Governance Mechanism Bypass",    "status": "N/A",  "category": "Access Control & Governance", "evidence": "No governance mechanism." },
+    { "item": "Timelock Backdoors",             "status": "PASS", "category": "Access Control & Governance", "evidence": "Oracle replacement has 1-day timelock. No bypass functions found (emergencyExecute, fastTrack, etc.). No timelock on moveAssets, setLiquidityRecipient, setExitFeeBps, setEpochSeconds." },
+    { "item": "No Emergency Controls",          "status": "PASS", "category": "Access Control & Governance", "evidence": "pause()/unpause() via GUARDIAN role on both vault and oracle." },
+
+    { "item": "Direct Pool Price Oracle",       "status": "N/A",  "category": "Oracle & Price Integrity",     "evidence": "Managed single-asset vault. Share price from admin-reported NAV; no DEX pool oracle." },
+    { "item": "Manual Price Control",           "status": "FAIL", "category": "Oracle & Price Integrity",     "evidence": "REPORTER (EOA 0x12f8...3D967) calls reportNav(pps, ts) on NavOracle to set arbitrary PPS. maxPpsMoveBps = 0 → rate limiter disabled. No governance approval. No timelock. ADMIN can re-disable rate limiter at any time via setConfig()." },
+
+    { "item": "Known Compiler Bugs",            "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Solidity ^0.8.21. No known CVEs." },
+    { "item": "No Reentrancy Protection",       "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "ReentrancyGuard (nonReentrant) on all 15 state-changing fund functions." },
+    { "item": "Unlimited Minting",              "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Shares minted only via ERC4626 deposit()/mint() — requires matching asset transfer." },
+    { "item": "Unsafe Delegatecall",            "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "No delegatecall or .call{} in custom code." },
+    { "item": "Uninitialized Implementation",   "status": "N/A",  "category": "Smart Contract Architecture",  "evidence": "Not a proxy." },
+    { "item": "Unprotected Initializer",        "status": "N/A",  "category": "Smart Contract Architecture",  "evidence": "No initializer. Constructor only." },
+
+    { "item": "No Audit + High TVL",            "status": "PASS", "category": "Audit & Verification",         "evidence": "TVL ~$12M. 3 audits: Adevarlabs (Dec 2025), Omniscia (Jan 2026), Sherlock (Feb 2026)." },
+    { "item": "Unverified Contracts",           "status": "PASS", "category": "Audit & Verification",         "evidence": "2/2 core contracts verified (NavVault, NavOracle)." },
+    { "item": "Critical Unfixed Issues",        "status": "PASS", "category": "Audit & Verification",         "evidence": "No critical/high unfixed issues known (audit report details not reviewed in detail per scope)." },
+
+    { "item": "Zero Flash Loan Protection",     "status": "PASS", "category": "Economic & Liquidity",         "evidence": "Oracle-driven NAV not manipulable via flash loans (PPS set off-chain by REPORTER). Instant withdrawals limited by vault liquidity." },
+    { "item": "Broken Tokenomics",              "status": "PASS", "category": "Economic & Liquidity",         "evidence": "~5.7% return since inception. Strategies: market making, basis/funding arb, RWA. No unsustainable emission." },
+    { "item": "No Slippage Protection",         "status": "PASS", "category": "Economic & Liquidity",         "evidence": "depositWithCheck(minShares), withdrawWithCheck(maxShares), redeemWithCheck(minAssets), mintWithCheck(maxAssets) all present." },
+
+    { "item": "Centralized Bridge",             "status": "N/A",  "category": "Cross-Chain & Bridges",        "evidence": "Not a bridge protocol." },
+    { "item": "No Transfer Limits",             "status": "N/A",  "category": "Cross-Chain & Bridges",        "evidence": "Not a bridge protocol." },
+    { "item": "No Token Verification",          "status": "N/A",  "category": "Cross-Chain & Bridges",        "evidence": "Not a bridge protocol." }
+  ],
+
+  "adminControlMatrix": [
+    {
+      "surface": "NavVault — moveAssets() (drain vault)",
+      "controller": "0x03987D5FA639023904378614537aC4FAFE1f8813",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Transfer the entire vault balance (~$12M) to liquidityRecipient in a single transaction"
+    },
+    {
+      "surface": "NavVault — setLiquidityRecipient()",
+      "controller": "0xbF33F8aAC7b90662bf346eB0bE42f7761308ef6E",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Redirect the moveAssets() destination to any address; in combination with OPERATOR a single ADMIN+OPERATOR coordination drains funds anywhere"
+    },
+    {
+      "surface": "NavOracle — reportNav() (set share price)",
+      "controller": "0x12f8F492ca503CA5505b67d42D63C91113E3D967",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Set arbitrary PPS — inflate to extract from depositors or deflate to dilute existing holders. Rate limiter disabled (maxPpsMoveBps = 0)"
+    },
+    {
+      "surface": "NavOracle — setConfig() (rate-limiter config)",
+      "controller": "0xbF33F8aAC7b90662bf346eB0bE42f7761308ef6E",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Re-disable maxPpsMoveBps or change staleness window; renders any future rate-limit hardening unenforceable"
+    },
+    {
+      "surface": "NavVault — setOracle() (replace oracle)",
+      "controller": "0xbF33F8aAC7b90662bf346eB0bE42f7761308ef6E",
+      "controllerType": "EOA",
+      "delayHours": 24,
+      "worstCase": "Replace the NAV oracle with an attacker-controlled implementation. The 1-day timelock is the only public delay window in the entire protocol"
+    },
+    {
+      "surface": "NavVault & NavOracle — pause()/unpause()",
+      "controller": "0xff0c2fba221cbc1011b294e3803851ee9df009ef",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Block user deposits/withdrawals indefinitely (denial-of-service); does not enable theft on its own"
+    }
+  ],
+
+  "openIssues": [
+    {
+      "issue": "OPERATOR EOA can drain vault via moveAssets()",
+      "category": "Access Control",
+      "severity": "Critical",
+      "impact": "Full loss of vault funds (~$12M)",
+      "recommendation": "Migrate OPERATOR to multisig (3/5 minimum). Add timelock or per-epoch cap to moveAssets().",
+      "priority": "P0",
+      "timeline": "Immediate"
+    },
+    {
+      "issue": "Oracle REPORTER can set arbitrary PPS",
+      "category": "Oracle",
+      "severity": "Critical",
+      "impact": "Share price manipulation → extraction or dilution",
+      "recommendation": "Enable maxPpsMoveBps (e.g., 100 = 1% max move per update). Migrate REPORTER to multisig or MPC.",
+      "priority": "P0",
+      "timeline": "Immediate"
+    },
+    {
+      "issue": "All roles are EOAs, no multisig",
+      "category": "Access Control",
+      "severity": "High",
+      "impact": "Single key compromise = full protocol control",
+      "recommendation": "Migrate DEFAULT_ADMIN, OPERATOR, GUARDIAN to multisigs. Use hardware wallets for all signers.",
+      "priority": "P0",
+      "timeline": "Immediate"
+    },
+    {
+      "issue": "setLiquidityRecipient() has no timelock",
+      "category": "Access Control",
+      "severity": "High",
+      "impact": "ADMIN can redirect fund destination instantly",
+      "recommendation": "Add timelock (minimum 48h) to setLiquidityRecipient().",
+      "priority": "P1",
+      "timeline": "1 week"
+    },
+    {
+      "issue": "ADMIN can re-disable oracle rate limiter",
+      "category": "Oracle",
+      "severity": "High",
+      "impact": "setConfig(staleness, 0) disables maxPpsMoveBps",
+      "recommendation": "Consider making rate-limiter floor immutable or require governance approval to lower it.",
+      "priority": "P1",
+      "timeline": "1 week"
+    },
+    {
+      "issue": "No bug bounty program",
+      "category": "Operations",
+      "severity": "Medium",
+      "impact": "Reduced incentive for responsible disclosure",
+      "recommendation": "Launch bug bounty on Immunefi with meaningful rewards (>$100K max).",
+      "priority": "P2",
+      "timeline": "1 month"
+    }
+  ],
+
+  "auditHistory": [
+    {
+      "date": "12/2025",
+      "firm": "Adevarlabs",
+      "tier": 3,
+      "scope": "Predeposit + Vault",
+      "reportUrl": ""
+    },
+    {
+      "date": "01/2026",
+      "firm": "Omniscia",
+      "tier": 2,
+      "scope": "Vault + Token/Vesting",
+      "reportUrl": "https://omniscia.io/reports/altura-trade-nav-contracts-6954ecaa2978aa00155d5541"
+    },
+    {
+      "date": "02/2026",
+      "firm": "Sherlock",
+      "tier": 2,
+      "scope": "Vault + WithdrawalWrapper (contest model)",
+      "reportUrl": ""
+    }
+  ],
+
+  "accessControlRoles": [
+    { "contract": "NavVault",  "role": "DEFAULT_ADMIN", "holder": "0xbF33...ef6E (EOA)",          "powers": "Set config (oracle, recipient, fees, epoch). Grant/revoke roles." },
+    { "contract": "NavVault",  "role": "OPERATOR",      "holder": "0x0398...8813 (EOA)",          "powers": "moveAssets() — transfer entire vault balance to liquidityRecipient" },
+    { "contract": "NavVault",  "role": "GUARDIAN",      "holder": "0xff0c...09ef (EOA)",          "powers": "pause()/unpause() the vault" },
+    { "contract": "NavOracle", "role": "DEFAULT_ADMIN", "holder": "0xbF33...ef6E (EOA)",          "powers": "setConfig() — staleness window and maxPpsMoveBps rate limiter" },
+    { "contract": "NavOracle", "role": "REPORTER",      "holder": "0x12f8...3D967 (EOA, deployer)", "powers": "reportNav(pps, ts) — set the share price the vault uses" },
+    { "contract": "NavOracle", "role": "GUARDIAN",      "holder": "0x0398...8813 (EOA, = vault OPERATOR)", "powers": "pause()/unpause() the oracle" }
+  ],
+
+  "contracts": [
+    { "name": "NavVault",  "address": "0xd0Ee0CF300DFB598270cd7F4D0c6E0D8F6e13f29", "verified": true, "type": "Immutable", "compiler": "0.8.21" },
+    { "name": "NavOracle", "address": "0x314A79618d86309e91aa972CAfd143ffca80AE8F", "verified": true, "type": "Immutable", "compiler": "0.8.21" }
+  ],
+
+  "protocolMeta": {
+    "website": "https://altura.trade",
+    "docs": "https://docs.altura.trade",
+    "github": "",
+    "type": "Vault",
+    "subtype": "Managed Single-Asset",
+    "tvlUsd": 11980000,
+    "tvlSource": "Oracle NAV (not listed on DeFiLlama)",
+    "launchDate": "2025-12"
+  },
+
+  "bugBounty": null
+}

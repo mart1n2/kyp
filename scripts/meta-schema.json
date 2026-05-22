@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Protocol Audit Report Metadata",
+  "type": "object",
+  "required": ["protocol", "chain", "auditDate", "auditor", "riskLevel", "securityScore", "securityGrade"],
+  "properties": {
+    "protocol": {
+      "type": "string",
+      "description": "Protocol name"
+    },
+    "chain": {
+      "type": "string",
+      "description": "Blockchain(s) the protocol operates on"
+    },
+    "auditDate": {
+      "type": "string",
+      "description": "Audit date in YYYY-MM-DD format"
+    },
+    "auditor": {
+      "type": "string",
+      "description": "Auditor or audit firm name"
+    },
+    "securityScore": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Security score 0-100"
+    },
+    "securityGrade": {
+      "type": "string",
+      "enum": ["A", "B", "C", "D", "E", "F"],
+      "description": "Security grade"
+    },
+    "riskLevel": {
+      "type": "string",
+      "enum": ["Critical", "High", "Medium", "Low"],
+      "description": "Overall risk level"
+    },
+    "recommendation": {
+      "type": "string",
+      "description": "Investment recommendation summary"
+    },
+    "dealBreakers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "status"],
+        "properties": {
+          "title": { "type": "string" },
+          "category": { "type": "string" },
+          "status": { "type": "string", "enum": ["PASS", "FAIL", "N/A", "Inconclusive"] },
+          "evidence": { "type": "string" }
+        }
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "properties": {
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contract": { "type": "string" },
+              "role": { "type": "string" },
+              "holder": { "type": "string" },
+              "holderType": { "type": "string", "enum": ["EOA", "Multisig", "Governance", "Contract", "Timelock", "Unknown"] },
+              "powers": { "type": "string" }
+            }
+          }
+        },
+        "summary": {
+          "type": "object",
+          "properties": {
+            "hasEOAControl": { "type": "boolean" },
+            "hasTimelock": { "type": "boolean" },
+            "hasMultisig": { "type": "boolean" },
+            "eoaControlledContracts": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "address": { "type": "string" },
+          "type": { "type": "string" },
+          "verified": { "type": "boolean" },
+          "compiler": { "type": "string" }
+        }
+      }
+    },
+    "auditHistory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string" },
+          "firm": { "type": "string" },
+          "tier": { "type": "integer" },
+          "reportUrl": { "type": "string" }
+        }
+      }
+    },
+    "keyFindings": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

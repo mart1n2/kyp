@@ -1,0 +1,77 @@
+---
+import '../styles/global.css';
+import SearchBar from './SearchBar.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Know Your Protocol — DeFi Protocol Permission Analysis' } = Astro.props;
+const currentPath = Astro.url.pathname;
+const isActive = (path: string) =>
+  path === '/' ? currentPath === '/' : currentPath.startsWith(path);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Know Your Protocol" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="mask-icon" href="/favicon.svg" color="#60a5fa" />
+    <meta name="theme-color" content="#020617" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    />
+    <title>{title} | Know Your Protocol</title>
+  </head>
+  <body>
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-slate-800 focus:text-white focus:px-3 focus:py-2 focus:rounded focus:ring-2 focus:ring-blue-500">
+      Skip to content
+    </a>
+    <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/80 backdrop-blur-md backdrop-saturate-150">
+      <div class="kyp-accent-strip"></div>
+      <nav class="container mx-auto px-4 py-3 flex items-center justify-between gap-3 sm:gap-4">
+        <a href="/" class="flex items-center gap-2.5 font-bold text-lg hover:text-blue-300 transition-colors shrink-0">
+          <span class="inline-flex w-7 h-7 items-center justify-center rounded-md bg-gradient-to-br from-blue-500/25 to-indigo-500/15 ring-1 ring-blue-400/40 text-blue-200 text-[11px] font-extrabold tracking-tight shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">KYP</span>
+          <span class="tracking-tight hidden sm:inline">Know Your Protocol</span>
+        </a>
+        <div class="flex-1 min-w-0 max-w-md">
+          <SearchBar />
+        </div>
+        <div class="flex items-center gap-1 text-sm shrink-0">
+          <a href="/" class={`px-2.5 py-1.5 rounded-md transition-colors ${isActive('/') ? 'text-white bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>Protocols</a>
+          <a href="/notes" class={`px-2.5 py-1.5 rounded-md transition-colors ${isActive('/notes') ? 'text-white bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>Notes</a>
+          <a href="/about" class={`px-2.5 py-1.5 rounded-md transition-colors hidden sm:inline-block ${isActive('/about') ? 'text-white bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>About</a>
+          <a href="https://github.com/mart1n2/kyp" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition-colors hidden sm:inline-flex items-center gap-1.5">
+            <span>GitHub</span>
+            <span aria-hidden="true" class="text-xs opacity-70">↗</span>
+          </a>
+        </div>
+      </nav>
+    </header>
+    <main id="main" class="container mx-auto px-4 py-10 relative">
+      <slot />
+    </main>
+    <footer class="border-t border-white/5 bg-slate-950/50 mt-20">
+      <div class="container mx-auto px-4 py-8 text-center text-slate-400">
+        <p class="text-sm tracking-tight">Know Your Protocol — DeFi Protocol Permission Analysis</p>
+        <p class="text-xs mt-2 text-slate-500 max-w-2xl mx-auto leading-relaxed">
+          This site presents technical audit findings and protocol metadata only. It does not constitute
+          financial, investment, legal, or tax advice, and does not endorse any protocol. Smart-contract
+          security is dynamic and assessments may be incomplete or out of date. Use at your own risk.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
