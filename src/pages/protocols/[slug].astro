@@ -6,7 +6,9 @@ import AdminControlMatrix from '../../components/AdminControlMatrix.astro';
 import OpenIssuesBoard from '../../components/OpenIssuesBoard.astro';
 import DealBreakerList from '../../components/DealBreakerList.astro';
 import ContractList from '../../components/ContractList.astro';
+import JsonLd from '../../components/JsonLd.astro';
 import { getCollection } from 'astro:content';
+import { riskTextClass } from '../../utils/badges';
 
 export async function getStaticPaths() {
   const reports = await getCollection('reports');
@@ -83,6 +85,7 @@ const sections = [
   <meta data-pagefind-meta={`chain:${chain}`} />
   <meta data-pagefind-meta={`gate:${dealBreakerGate}`} />
   <meta data-pagefind-meta={`risk:${riskLevel}`} />
+  <JsonLd type="protocol" data={{ protocol, chain }} />
   <a href="/" class="text-sm text-blue-400 hover:underline mb-4 inline-flex items-center gap-1">
     <span aria-hidden="true">←</span>
     <span>All protocols</span>
@@ -141,7 +144,7 @@ const sections = [
     )}
 
     {dealBreakerDetails.length > 0 && (
-      <section id="deal-breakers" class="bg-slate-800 rounded-lg p-6 scroll-mt-20">
+      <section id="deal-breakers" class="kyp-panel scroll-mt-28">
         <div class="flex items-baseline justify-between mb-4 flex-wrap gap-2">
           <h2 class="text-xl font-bold">Deal Breaker Matrix</h2>
           {dealBreakerSummary && (
@@ -190,19 +193,19 @@ const sections = [
     )}
 
     {openIssues.length > 0 && (
-      <section id="open-issues" class="scroll-mt-20">
+      <section id="open-issues" class="scroll-mt-28">
         <OpenIssuesBoard issues={openIssues} />
       </section>
     )}
 
     {contracts.length > 0 && (
-      <section id="contracts" class="scroll-mt-20">
+      <section id="contracts" class="scroll-mt-28">
         <ContractList contracts={contracts} chain={chain} />
       </section>
     )}
 
     {auditHistory.length > 0 && (
-      <section id="audits" class="bg-slate-800 rounded-lg p-6 scroll-mt-20">
+      <section id="audits" class="kyp-panel scroll-mt-28">
         <h2 class="text-xl font-bold mb-4">Audit History</h2>
         <div class="space-y-3">
           {auditHistory.map(a => {
@@ -212,7 +215,7 @@ const sections = [
                            : 'bg-slate-800 text-slate-300 border-slate-700';
             const f = a.findings;
             return (
-              <article class="p-4 bg-slate-900 rounded border border-slate-700">
+              <article class="kyp-inset p-4">
                 <div class="flex flex-wrap items-center gap-2">
                   <span class={`px-2 py-0.5 rounded border text-xs font-semibold ${tierColor}`}>{tierLabel}</span>
                   <span class="font-semibold">{a.firm}</span>
@@ -269,7 +272,7 @@ const sections = [
     )}
 
     {accessControlRoles.length > 0 && (
-      <section class="bg-slate-800 rounded-lg p-6">
+      <section class="kyp-panel">
         <details class="group">
           <summary class="cursor-pointer flex items-center justify-between gap-2 list-none">
             <span class="font-semibold text-slate-200">All role assignments ({accessControlRoles.length})</span>
@@ -314,7 +317,7 @@ const sections = [
           const date = note.data.date.toISOString().slice(0, 10);
           return (
             <li>
-              <a href={`/notes/${note.id}`} class="block h-full p-4 bg-slate-800/60 rounded-lg border border-slate-700 hover:border-blue-500 transition-colors">
+              <a href={`/notes/${note.id}`} class="kyp-card block h-full p-4">
                 <time datetime={date} class="text-[11px] uppercase tracking-wider text-slate-500 font-mono">{date}</time>
                 <div class="text-sm font-semibold text-slate-100 mt-1 leading-snug">{note.data.title}</div>
                 {note.data.description && (
@@ -338,10 +341,10 @@ const sections = [
     <ul class="space-y-2">
       {allReports.map(r => (
         <li>
-          <a href={`/reports/${r.data.protocolSlug}/${r.data.slug}`} class="block p-3 bg-slate-800/60 rounded border border-slate-700 hover:border-blue-500 transition-colors">
+          <a href={`/reports/${r.data.protocolSlug}/${r.data.slug}`} class="kyp-card block p-3">
             <div class="flex items-center justify-between gap-3">
               <span class="text-sm">{r.data.auditDate} — {r.data.auditor}</span>
-              <span class={`text-xs px-2 py-0.5 rounded font-medium ${r.data.riskLevel === 'Critical' ? 'bg-red-600' : r.data.riskLevel === 'High' ? 'bg-orange-600' : r.data.riskLevel === 'Medium' ? 'bg-yellow-600 text-black' : 'bg-green-600'}`}>{r.data.riskLevel}</span>
+              <span class={`text-xs font-semibold ${riskTextClass(r.data.riskLevel)}`}>{r.data.riskLevel}</span>
             </div>
           </a>
         </li>

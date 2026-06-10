@@ -14,7 +14,7 @@ const { sections } = Astro.props;
 
 <nav
   id="page-nav"
-  class="sticky top-0 z-30 -mx-4 sm:mx-0 mb-6 bg-slate-900/85 backdrop-blur border-y border-slate-700/60"
+  class="sticky top-[var(--header-h)] z-30 -mx-4 sm:mx-0 mb-6 bg-slate-950/85 backdrop-blur border-b border-white/5 sm:rounded-b-lg"
   aria-label="Page sections"
 >
   <div class="overflow-x-auto">
@@ -94,9 +94,11 @@ const { sections } = Astro.props;
         const target = document.getElementById(id);
         if (!target) return;
         e.preventDefault();
-        const navHeight = (document.getElementById('page-nav')?.offsetHeight ?? 0) + 8;
+        const headerHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
+        const navHeight = (document.getElementById('page-nav')?.offsetHeight ?? 0) + headerHeight + 8;
         const top = target.getBoundingClientRect().top + window.scrollY - navHeight;
-        window.scrollTo({ top, behavior: 'smooth' });
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
         history.replaceState(null, '', `#${id}`);
         setActive(id);
       });

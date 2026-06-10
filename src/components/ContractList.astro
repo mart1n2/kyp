@@ -1,47 +1,40 @@
 ---
+import { explorerUrlFor } from '../utils/badges';
+
 interface Props {
   contracts: Array<{ name: string; address: string; verified: boolean; type: string; compiler: string }>;
   chain?: string;
 }
 
 const { contracts, chain = 'Ethereum' } = Astro.props;
-
-const explorerBase: Record<string, string> = {
-  Ethereum: 'https://etherscan.io/address/',
-  BSC: 'https://bscscan.com/address/',
-  Arbitrum: 'https://arbiscan.io/address/',
-  Optimism: 'https://optimistic.etherscan.io/address/',
-  Polygon: 'https://polygonscan.com/address/',
-  Base: 'https://basescan.org/address/',
-  Avalanche: 'https://snowtrace.io/address/',
-};
-
-const explorerUrl = explorerBase[chain] || 'https://etherscan.io/address/';
+const explorerUrl = explorerUrlFor(chain);
 ---
 
-<div class="bg-slate-800 rounded-lg p-6">
+<div class="kyp-panel">
   <h2 class="text-xl font-bold mb-4">Contract Inventory</h2>
-  
+
   {contracts.length > 0 ? (
     <div class="space-y-3">
       {contracts.map(contract => (
-        <div class="p-3 bg-slate-900 rounded border border-slate-700">
-          <div class="flex items-start justify-between">
-            <div>
+        <div class="kyp-inset p-3">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
               <div class="font-semibold">{contract.name}</div>
-              <a href={`${explorerUrl}${contract.address}`} target="_blank" rel="noopener noreferrer" class="font-mono text-xs text-blue-400 hover:text-blue-300 mt-1 inline-block">{contract.address} ↗</a>
+              <a href={`${explorerUrl}${contract.address}`} target="_blank" rel="noopener noreferrer" class="font-mono text-xs text-blue-400 hover:text-blue-300 mt-1 inline-block break-all">{contract.address} ↗</a>
             </div>
-            <div class="flex gap-2 text-xs">
-              {contract.verified && (
-                <span class="px-2 py-1 bg-green-900 text-green-400 rounded">Verified</span>
+            <div class="flex gap-1.5 text-xs shrink-0">
+              {contract.verified ? (
+                <span class="px-2 py-0.5 rounded border bg-green-900/40 text-green-200 border-green-800 font-medium">Verified</span>
+              ) : (
+                <span class="px-2 py-0.5 rounded border bg-red-900/40 text-red-200 border-red-800 font-medium">Unverified</span>
               )}
               {contract.type.includes('Proxy') && (
-                <span class="px-2 py-1 bg-blue-900 text-blue-400 rounded">Proxy</span>
+                <span class="px-2 py-0.5 rounded border bg-blue-900/40 text-blue-200 border-blue-800 font-medium">Proxy</span>
               )}
             </div>
           </div>
           {contract.compiler && (
-            <div class="text-xs text-slate-500 mt-2">Compiler: {contract.compiler}</div>
+            <div class="text-xs text-slate-500 mt-2 font-mono">Compiler: {contract.compiler}</div>
           )}
         </div>
       ))}

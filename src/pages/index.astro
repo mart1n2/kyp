@@ -5,20 +5,9 @@ import FilterPanel from '../components/FilterPanel.astro';
 import NoteKindBadge from '../components/NoteKindBadge.astro';
 import { getCollection } from 'astro:content';
 import { parseAuditDate, relativeAge } from '../utils/format';
+import { compareNotes, isoDate } from '../utils/notes';
 
 const reports = await getCollection('reports');
-const compareNotes = (
-  a: { data: { date: Date; updated?: Date } },
-  b: { data: { date: Date; updated?: Date } },
-) => {
-  const aTime = (a.data.updated ?? a.data.date).getTime();
-  const bTime = (b.data.updated ?? b.data.date).getTime();
-  if (aTime !== bTime) return bTime - aTime;
-  // tiebreak: a freshly-updated note ranks above a same-date original publish
-  if (a.data.updated && !b.data.updated) return -1;
-  if (!a.data.updated && b.data.updated) return 1;
-  return 0;
-};
 const recentNotes = (await getCollection('notes', ({ data }) => !data.draft))
   .sort(compareNotes)
   .slice(0, 3);
@@ -65,7 +54,7 @@ const cards = protocols.map(report => {
   <section class="mb-10">
     <div class="inline-flex items-center gap-2 mb-3 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-medium text-blue-300 uppercase tracking-wider">
       <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"></span>
-      Live · {totalProtocols} protocols indexed
+      {totalProtocols} protocol{totalProtocols === 1 ? '' : 's'} indexed
     </div>
     <h1 class="text-4xl sm:text-5xl font-extrabold mb-3 tracking-tight bg-gradient-to-br from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">Know Your Protocol</h1>
     <p class="text-slate-400 max-w-2xl leading-relaxed">
@@ -74,19 +63,19 @@ const cards = protocols.map(report => {
 
     <div class="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div class="kyp-kpi">
-        <div class="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-medium">Protocols Indexed</div>
+        <div class="kyp-label">Protocols Indexed</div>
         <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight font-mono">{totalProtocols}</div>
       </div>
       <div class="kyp-kpi">
-        <div class="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-medium">Chains Covered</div>
+        <div class="kyp-label">Chains Covered</div>
         <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight font-mono">{chainsCovered}</div>
       </div>
       <div class="kyp-kpi">
-        <div class="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-medium">Gate: Fail</div>
+        <div class="kyp-label">Gate: Fail</div>
         <div class={`text-3xl font-extrabold mt-1.5 tracking-tight font-mono ${failingGates > 0 ? 'text-red-300' : 'text-slate-50'}`}>{failingGates}</div>
       </div>
       <div class="kyp-kpi">
-        <div class="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-medium">Latest Audit</div>
+        <div class="kyp-label">Latest Audit</div>
         <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight">{latestAuditAge ?? '—'}</div>
       </div>
     </div>
@@ -97,8 +86,21 @@ const cards = protocols.map(report => {
       <FilterPanel protocols={protocols} />
     </div>
     <div class="lg:col-span-3">
-      <div class="flex items-center justify-between mb-3 text-sm text-slate-400">
-        <span id="match-count">{totalProtocols} protocol{totalProtocols === 1 ? '' : 's'}</span>
+      <div class="flex items-center justify-between gap-3 mb-3 text-sm text-slate-400">
+        <span id="match-count" aria-live="polite">{totalProtocols} protocol{totalProtocols === 1 ? '' : 's'}</span>
+        <label class="flex items-center gap-2">
+          <span class="text-xs text-slate-500">Sort</span>
+          <select
+            id="sort-select"
+            class="bg-slate-900/60 border border-slate-700 rounded-md text-xs text-slate-300 px-2 py-1.5 focus:outline-none focus:border-blue-500"
+          >
+            <option value="name">Name A–Z</option>
+            <option value="score-asc">Lowest score first</option>
+            <option value="score-desc">Highest score first</option>
+            <option value="audit-desc">Newest audit</option>
+            <option value="audit-asc">Oldest audit</option>
+          </select>
+        </label>
       </div>
 
       <div id="protocol-grid" class="grid gap-3">
@@ -145,16 +147,14 @@ const cards = protocols.map(report => {
       </div>
       <ul class="grid grid-cols-1 md:grid-cols-3 gap-3">
         {recentNotes.map(note => {
-          const origDate = note.data.date.toISOString().slice(0, 10);
-          const updatedDate = note.data.updated ? note.data.updated.toISOString().slice(0, 10) : null;
+          const origDate = isoDate(note.data.date);
+          const updatedDate = note.data.updated ? isoDate(note.data.updated) : null;
           const effectiveDate = updatedDate ?? origDate;
+          const isUpdated = updatedDate !== null && updatedDate !== origDate;
           const kindClass = note.data.kind === 'incident' ? 'is-incident' : note.data.kind === 'research' ? 'is-research' : '';
           return (
             <li>
-              <a
-                href={`/notes/${note.id}`}
-                class={`kyp-card ${kindClass} block h-full p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`}
-              >
+              <a href={`/notes/${note.id}`} class={`kyp-card ${kindClass} block h-full p-4`}>
                 {note.data.kind !== 'essay' && (
                   <div class="mb-2">
                     <NoteKindBadge kind={note.data.kind} incident={note.data.incident} size="sm" />
@@ -162,8 +162,8 @@ const cards = protocols.map(report => {
                 )}
                 <div class="flex items-baseline gap-1.5">
                   <time datetime={effectiveDate} class="text-[11px] uppercase tracking-wider text-slate-500 font-mono">{effectiveDate}</time>
-                  {updatedDate && updatedDate !== origDate && (
-                    <span class="text-[10px] text-slate-600 font-mono">· upd</span>
+                  {isUpdated && (
+                    <span class="text-[10px] text-slate-500 font-mono" title={`Originally published ${origDate}`}>updated</span>
                   )}
                 </div>
                 <h3 class="text-sm font-semibold text-slate-100 mt-1 leading-snug">{note.data.title}</h3>
@@ -183,3 +183,44 @@ const cards = protocols.map(report => {
     </section>
   )}
 </Layout>
+
+<script>
+  // Client-side sort for the protocol grid. Order-by values live in data
+  // attributes rendered by ProtocolCard; filters (FilterPanel) only toggle
+  // visibility, so sorting and filtering compose without coordination.
+  (function () {
+    const grid = document.getElementById('protocol-grid');
+    const select = document.getElementById('sort-select') as HTMLSelectElement | null;
+    if (!grid || !select) return;
+
+    const num = (el: HTMLElement, key: string) => Number(el.dataset[key] ?? 0);
+    const SORTS: Record<string, (a: HTMLElement, b: HTMLElement) => number> = {
+      'name': (a, b) => (a.dataset.protocolName ?? '').localeCompare(b.dataset.protocolName ?? ''),
+      'score-asc': (a, b) => num(a, 'score') - num(b, 'score'),
+      'score-desc': (a, b) => num(b, 'score') - num(a, 'score'),
+      'audit-desc': (a, b) => num(b, 'auditTs') - num(a, 'auditTs'),
+      'audit-asc': (a, b) => num(a, 'auditTs') - num(b, 'auditTs'),
+    };
+
+    const applySort = (updateUrl = true) => {
+      const sorter = SORTS[select.value] ?? SORTS.name;
+      const cards = Array.from(grid.querySelectorAll<HTMLElement>('a[data-protocol-card]'));
+      cards.sort(sorter);
+      grid.append(...cards);
+      if (updateUrl) {
+        const params = new URLSearchParams(location.search);
+        if (select.value === 'name') params.delete('sort');
+        else params.set('sort', select.value);
+        const qs = params.toString();
+        history.replaceState(null, '', qs ? `${location.pathname}?${qs}` : location.pathname);
+      }
+    };
+
+    const fromUrl = new URLSearchParams(location.search).get('sort');
+    if (fromUrl && SORTS[fromUrl]) {
+      select.value = fromUrl;
+      applySort(false);
+    }
+    select.addEventListener('change', () => applySort());
+  })();
+</script>

@@ -3,18 +3,7 @@ import Layout from '../../components/Layout.astro';
 import NoteKindBadge from '../../components/NoteKindBadge.astro';
 import { getCollection } from 'astro:content';
 import { relativeAge } from '../../utils/format';
-
-const compareNotes = (
-  a: { data: { date: Date; updated?: Date } },
-  b: { data: { date: Date; updated?: Date } },
-) => {
-  const aTime = (a.data.updated ?? a.data.date).getTime();
-  const bTime = (b.data.updated ?? b.data.date).getTime();
-  if (aTime !== bTime) return bTime - aTime;
-  if (a.data.updated && !b.data.updated) return -1;
-  if (!a.data.updated && b.data.updated) return 1;
-  return 0;
-};
+import { compareNotes, isoDate } from '../../utils/notes';
 
 const notes = (await getCollection('notes', ({ data }) => !data.draft))
   .sort(compareNotes);
@@ -29,10 +18,6 @@ const tags = Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1] || a[0].
 
 const incidentCount = notes.filter(n => n.data.kind === 'incident').length;
 const researchCount = notes.filter(n => n.data.kind === 'research').length;
-
-function isoDate(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
 ---
 
 <Layout title="Notes — Know Your Protocol" description="Security research, writeups, and meta posts on the KYP framework.">
@@ -101,7 +86,7 @@ function isoDate(d: Date) {
       >
         <a
           href={`/notes/${note.id}`}
-          class={`kyp-card ${kindClass} block p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`}
+          class={`kyp-card ${kindClass} block p-5`}
         >
           {note.data.kind !== 'essay' && (
             <div class="mb-2">
@@ -115,8 +100,8 @@ function isoDate(d: Date) {
                 {isoDate(note.data.updated ?? note.data.date)}
               </time>
               {note.data.updated && note.data.updated.getTime() !== note.data.date.getTime() && (
-                <div class="text-[10px] text-slate-600 normal-case">
-                  updated · orig {isoDate(note.data.date)}
+                <div class="text-[10px] text-slate-500" title={`Originally published ${isoDate(note.data.date)}`}>
+                  updated
                 </div>
               )}
             </div>
@@ -189,7 +174,15 @@ function isoDate(d: Date) {
     let activeTag = '';
     let activeKind = '';
 
-    const apply = () => {
+    const syncUrl = () => {
+      const params = new URLSearchParams(location.search);
+      if (activeTag) params.set('tag', activeTag); else params.delete('tag');
+      if (activeKind) params.set('kind', activeKind); else params.delete('kind');
+      const qs = params.toString();
+      history.replaceState(null, '', qs ? `${location.pathname}?${qs}` : location.pathname);
+    };
+
+    const apply = (updateUrl = true) => {
       tagButtons.forEach(b => b.classList.toggle('is-active', (b.dataset.tagFilter ?? '') === activeTag));
       kindButtons.forEach(b => b.classList.toggle('is-active', (b.dataset.kindFilter ?? '') === activeKind));
       cards.forEach(card => {
@@ -199,6 +192,7 @@ function isoDate(d: Date) {
         const kindOk = activeKind === '' || cardKind === activeKind;
         card.style.display = (tagOk && kindOk) ? '' : 'none';
       });
+      if (updateUrl) syncUrl();
     };
 
     tagButtons.forEach(b => b.addEventListener('click', () => {
@@ -209,5 +203,13 @@ function isoDate(d: Date) {
       activeKind = b.dataset.kindFilter ?? '';
       apply();
     }));
+
+    // Restore state from a shared/bookmarked URL.
+    const params = new URLSearchParams(location.search);
+    const urlTag = params.get('tag') ?? '';
+    const urlKind = params.get('kind') ?? '';
+    if (urlTag && tagButtons.some(b => b.dataset.tagFilter === urlTag)) activeTag = urlTag;
+    if (urlKind && kindButtons.some(b => b.dataset.kindFilter === urlKind)) activeKind = urlKind;
+    if (activeTag || activeKind) apply(false);
   })();
 </script>

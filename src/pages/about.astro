@@ -1,5 +1,6 @@
 ---
 import Layout from '../components/Layout.astro';
+import GateBadge from '../components/GateBadge.astro';
 ---
 
 <Layout title="About — Know Your Protocol" description="What KYP is, how protocols are assessed, and how to read the dashboard.">
@@ -39,11 +40,11 @@ import Layout from '../components/Layout.astro';
       <div>
         <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-2">Deal Breaker Gate</h3>
         <ul class="space-y-1 text-slate-300">
-          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-green-900/50 text-green-300 border-green-700">Pass</span> — no deal breakers triggered.</li>
-          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-yellow-900/40 text-yellow-200 border-yellow-700">Conditional</span> — passed the gate with material caveats.</li>
-          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-blue-900/40 text-blue-300 border-blue-700">Watchlist</span> — passed but with notable open concerns.</li>
-          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-red-900/50 text-red-300 border-red-700">Fail</span> — one or more deal breakers triggered.</li>
-          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-slate-800 text-slate-400 border-slate-700">Inconclusive</span> — assessment incomplete.</li>
+          <li><GateBadge gate="Pass" size="sm" /> — no deal breakers triggered.</li>
+          <li><GateBadge gate="Conditional" size="sm" /> — passed the gate with material caveats.</li>
+          <li><GateBadge gate="Watchlist" size="sm" /> — passed but with notable open concerns.</li>
+          <li><GateBadge gate="Fail" size="sm" /> — one or more deal breakers triggered.</li>
+          <li><GateBadge gate="Inconclusive" size="sm" /> — assessment incomplete.</li>
         </ul>
       </div>
 

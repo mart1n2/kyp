@@ -1,6 +1,8 @@
 ---
 import Layout from '../../components/Layout.astro';
 import ReportTOC from '../../components/ReportTOC.astro';
+import GateBadge from '../../components/GateBadge.astro';
+import JsonLd from '../../components/JsonLd.astro';
 import { getCollection } from 'astro:content';
 import { renderMarkdown } from '../../utils/render-markdown';
 import { relativeAge } from '../../utils/format';
@@ -19,21 +21,15 @@ const {
   protocolSlug, body, dealBreakerGate, protocolMeta,
 } = report.data;
 
-const renderedContent = await renderMarkdown(body);
+const { html: renderedContent, headings } = await renderMarkdown(body);
 const age = relativeAge(auditDate);
-
-const gateStyle: Record<string, string> = {
-  Pass:         'bg-green-900/40 text-green-200 border-green-700',
-  Conditional:  'bg-yellow-900/40 text-yellow-200 border-yellow-700',
-  Watchlist:    'bg-blue-900/40 text-blue-200 border-blue-700',
-  Fail:         'bg-red-900/40 text-red-200 border-red-700',
-  Inconclusive: 'bg-slate-800 text-slate-300 border-slate-700',
-};
 ---
 
 <Layout
   title={`${protocol} — Long-form Analysis (${auditDate})`}
   description={`Long-form analysis companion for ${protocol} on ${chain}, audited ${auditDate}.`}
+  ogType="article"
+  publishedDate={auditDate}
 >
   <div
     data-pagefind-body
@@ -42,6 +38,7 @@ const gateStyle: Record<string, string> = {
   <meta data-pagefind-meta="type:report" />
   <meta data-pagefind-meta={`protocol:${protocol}`} />
   <meta data-pagefind-meta={`chain:${chain}`} />
+  <JsonLd type="report" data={{ protocol, chain, auditDate, auditor }} />
   <a href={`/protocols/${protocolSlug}`} class="text-sm text-blue-400 hover:underline mb-4 inline-flex items-center gap-1">
     <span aria-hidden="true">←</span>
     <span>Back to {protocol} dashboard</span>
@@ -60,9 +57,7 @@ const gateStyle: Record<string, string> = {
       <span aria-hidden="true">·</span>
       <span>{auditor}</span>
       <span aria-hidden="true">·</span>
-      <span class={`inline-block px-2 py-0.5 rounded border text-[11px] font-semibold ${gateStyle[dealBreakerGate] ?? gateStyle.Inconclusive}`}>
-        Gate: {dealBreakerGate}
-      </span>
+      <GateBadge gate={dealBreakerGate} prefix size="sm" />
     </div>
     <p class="text-xs text-slate-500 mt-3">
       Narrative companion to the <a href={`/protocols/${protocolSlug}`} class="text-blue-400 hover:text-blue-300">structured dashboard</a>. For the trust matrix, deal-breaker table, and contract inventory, see the dashboard.
@@ -71,7 +66,7 @@ const gateStyle: Record<string, string> = {
 
   <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
     <aside class="lg:col-span-1">
-      <ReportTOC markdown={body} />
+      <ReportTOC headings={headings} />
     </aside>
     <article
       class="lg:col-span-3 prose prose-invert prose-slate max-w-none

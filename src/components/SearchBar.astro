@@ -20,7 +20,7 @@
       placeholder="Search reports, protocols, notes…"
       class="w-full pl-8 pr-12 py-1.5 bg-slate-900/60 border border-slate-700 rounded-md text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:bg-slate-900"
     />
-    <kbd id="search-shortcut-hint" class="pointer-events-none absolute inset-y-0 right-2 my-auto h-5 px-1.5 inline-flex items-center text-[10px] font-mono text-slate-500 bg-slate-800 border border-slate-700 rounded">⌘K</kbd>
+    <kbd id="search-shortcut-hint" class="pointer-events-none absolute inset-y-0 right-2 my-auto h-5 px-1.5 hidden sm:inline-flex items-center text-[10px] font-mono text-slate-500 bg-slate-800 border border-slate-700 rounded">⌘K</kbd>
   </div>
   <div
     id="pagefind-search"
@@ -85,6 +85,7 @@
     } else {
       dropdown.classList.add('hidden');
       input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
       activeIndex = -1;
     }
   }
@@ -110,6 +111,7 @@
       var excerpt = item.excerpt || '';
       return (
         '<a href="' + escapeHtml(item.url) + '" data-result-index="' + i + '" ' +
+          'id="search-result-' + i + '" role="option" aria-selected="false" ' +
           'class="search-result block px-3 py-2.5 border-b border-slate-800 last:border-0 hover:bg-slate-800/60 focus:bg-slate-800 focus:outline-none">' +
           '<div class="flex items-center gap-2 mb-0.5">' +
             '<span class="inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold tracking-wider rounded border ' + badge.cls + '">' + badge.label + '</span>' +
@@ -130,11 +132,18 @@
     rows.forEach(function(row, i) {
       if (i === activeIndex) {
         row.classList.add('bg-slate-800');
+        row.setAttribute('aria-selected', 'true');
         row.scrollIntoView({ block: 'nearest' });
       } else {
         row.classList.remove('bg-slate-800');
+        row.setAttribute('aria-selected', 'false');
       }
     });
+    if (activeIndex >= 0) {
+      input.setAttribute('aria-activedescendant', 'search-result-' + activeIndex);
+    } else {
+      input.removeAttribute('aria-activedescendant');
+    }
   }
 
   function runSearch(query) {
@@ -180,9 +189,11 @@
       activeIndex = (activeIndex - 1 + rows.length) % rows.length;
       highlightActive();
     } else if (e.key === 'Enter') {
-      if (activeIndex >= 0 && rows[activeIndex]) {
+      // No explicit selection → open the first result.
+      var target = activeIndex >= 0 ? rows[activeIndex] : rows[0];
+      if (target && !dropdown.classList.contains('hidden')) {
         e.preventDefault();
-        window.location.href = rows[activeIndex].getAttribute('href');
+        window.location.href = target.getAttribute('href');
       }
     } else if (e.key === 'Escape') {
       setOpen(false);

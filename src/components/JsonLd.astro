@@ -1,10 +1,11 @@
 ---
 interface Props {
-  type: 'protocol' | 'report';
+  type: 'protocol' | 'report' | 'note';
   data: Record<string, any>;
 }
 
 const { type, data } = Astro.props;
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
 
 let jsonLd = {};
 
@@ -14,8 +15,22 @@ if (type === 'protocol') {
     "@type": "Organization",
     "name": data.protocol,
     "description": `DeFi protocol on ${data.chain} - Security analysis and audit reports`,
-    "url": Astro.url.pathname,
+    "url": pageUrl,
     "knowsAbout": data.chain,
+  };
+} else if (type === 'note') {
+  jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": data.title,
+    "description": data.description ?? data.title,
+    "datePublished": data.date,
+    ...(data.updated ? { "dateModified": data.updated } : {}),
+    "url": pageUrl,
+    "author": {
+      "@type": "Organization",
+      "name": "Know Your Protocol",
+    },
   };
 } else if (type === 'report') {
   jsonLd = {

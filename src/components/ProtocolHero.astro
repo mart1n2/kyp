@@ -1,5 +1,6 @@
 ---
 import { relativeAge, compactNumber } from '../utils/format';
+import { riskTextClass, scoreTextClass } from '../utils/badges';
 
 interface Props {
   protocol: string;
@@ -51,19 +52,6 @@ const gateStyle: Record<string, { ring: string; text: string; label: string; sub
 };
 const gate = gateStyle[dealBreakerGate] ?? gateStyle.Inconclusive;
 
-const scoreColor =
-  securityScore >= 70 ? 'text-green-400'
-  : securityScore >= 40 ? 'text-yellow-400'
-  : 'text-red-400';
-
-const riskColor: Record<string, string> = {
-  Critical: 'text-red-400',
-  High: 'text-orange-400',
-  Medium: 'text-yellow-300',
-  Low: 'text-green-300',
-  Unknown: 'text-slate-300',
-};
-
 const age = relativeAge(auditDate);
 const tvlDisplay = tvlUsd != null ? `$${compactNumber(tvlUsd)}` : null;
 
@@ -87,27 +75,27 @@ const typeLine = [type, subtype ? `(${subtype})` : ''].filter(Boolean).join(' ')
 </header>
 
 <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-  <div class={`rounded-lg p-4 bg-slate-900 ring-1 ${gate.ring}`}>
-    <div class="text-xs uppercase tracking-wider text-slate-500">Deal Breaker Gate</div>
-    <div class={`text-2xl font-extrabold mt-1 ${gate.text}`}>{gate.label}</div>
+  <div class={`kyp-kpi ring-1 ${gate.ring}`}>
+    <div class="kyp-label">Deal Breaker Gate</div>
+    <div class={`text-2xl font-extrabold mt-1.5 tracking-tight ${gate.text}`}>{gate.label}</div>
     <div class="text-xs text-slate-400 mt-1">{gate.sub}</div>
   </div>
-  <div class="rounded-lg p-4 bg-slate-900 ring-1 ring-slate-700/60">
-    <div class="text-xs uppercase tracking-wider text-slate-500">Score</div>
-    <div class="flex items-baseline gap-2 mt-1">
-      <span class={`text-2xl font-extrabold ${scoreColor}`}>{securityScore}</span>
+  <div class="kyp-kpi">
+    <div class="kyp-label">Score</div>
+    <div class="flex items-baseline gap-2 mt-1.5">
+      <span class={`text-2xl font-extrabold tracking-tight font-mono ${scoreTextClass(securityScore)}`}>{securityScore}</span>
       <span class="text-sm text-slate-500">/100</span>
     </div>
     <div class="text-xs text-slate-400 mt-1">Grade <span class="text-slate-200 font-semibold">{securityGrade}</span></div>
   </div>
-  <div class="rounded-lg p-4 bg-slate-900 ring-1 ring-slate-700/60">
-    <div class="text-xs uppercase tracking-wider text-slate-500">Risk Level</div>
-    <div class={`text-2xl font-extrabold mt-1 ${riskColor[riskLevel] ?? 'text-slate-300'}`}>{riskLevel}</div>
+  <div class="kyp-kpi">
+    <div class="kyp-label">Risk Level</div>
+    <div class={`text-2xl font-extrabold mt-1.5 tracking-tight ${riskTextClass(riskLevel)}`}>{riskLevel}</div>
     <div class="text-xs text-slate-400 mt-1">Aggregate finding</div>
   </div>
-  <div class="rounded-lg p-4 bg-slate-900 ring-1 ring-slate-700/60">
-    <div class="text-xs uppercase tracking-wider text-slate-500">Re-check Cadence</div>
-    <div class="text-2xl font-extrabold mt-1 text-slate-100">{monitoringCadence}</div>
+  <div class="kyp-kpi">
+    <div class="kyp-label">Re-check Cadence</div>
+    <div class="text-2xl font-extrabold mt-1.5 tracking-tight text-slate-100">{monitoringCadence}</div>
     <div class="text-xs text-slate-400 mt-1">Suggested for next assessment</div>
   </div>
 </section>
@@ -138,7 +126,7 @@ const typeLine = [type, subtype ? `(${subtype})` : ''].filter(Boolean).join(' ')
 </section>
 
 {(findingsSummary || keyFindings.length > 0) && (
-  <section id="findings" class="bg-slate-800 rounded-lg p-6 mb-6 scroll-mt-20">
+  <section id="findings" class="kyp-panel mb-6 scroll-mt-28">
     <h2 class="text-xl font-bold mb-3">Findings</h2>
     {findingsSummary && <p class="text-slate-300 leading-relaxed mb-4">{findingsSummary}</p>}
     {keyFindings.length > 0 && (

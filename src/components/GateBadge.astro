@@ -1,0 +1,19 @@
+---
+import { gateBadgeClass } from '../utils/badges';
+
+interface Props {
+  gate?: string;
+  /** Render the "Gate:" prefix before the value. */
+  prefix?: boolean;
+  size?: 'xs' | 'sm';
+}
+
+const { gate = 'Inconclusive', prefix = false, size = 'xs' } = Astro.props;
+const sizing = size === 'xs'
+  ? 'px-2 py-0.5 text-[10px] uppercase tracking-wider'
+  : 'px-2 py-0.5 text-[11px]';
+---
+
+<span class={`inline-block shrink-0 rounded border font-semibold ${sizing} ${gateBadgeClass(gate)}`}>
+  {prefix ? `Gate: ${gate}` : gate}
+</span>

@@ -1,38 +1,44 @@
 ---
+import type { MarkdownHeading } from '@astrojs/markdown-remark';
+
 interface Props {
-  markdown: string;
+  /** Headings with the exact slugs rendered in the HTML (from renderMarkdown or Astro's render()). */
+  headings: MarkdownHeading[];
+  title?: string;
 }
 
-const { markdown } = Astro.props;
-
-const headings = markdown
-  .split('\n')
-  .filter(line => line.match(/^#{2,3}\s/))
-  .map(line => {
-    const level = line.match(/^(#{2,3})/)?.[1].length || 2;
-    const text = line.replace(/^#{2,3}\s/, '').trim();
-    const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
-    return { level, text, id };
-  });
+const { headings, title = 'Contents' } = Astro.props;
+const items = headings.filter(h => h.depth === 2 || h.depth === 3);
 ---
 
-<nav class="sticky top-4" aria-label="Report contents">
-  <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Contents</h3>
-  <ul class="space-y-1 text-sm border-l border-slate-700">
-    {headings.map(heading => (
-      <li class={heading.level === 3 ? 'ml-3' : ''}>
-        <a
-          href={`#${heading.id}`}
-          data-toc-link
-          data-section={heading.id}
-          class="toc-link block pl-3 -ml-px py-1 border-l border-transparent text-slate-400 hover:text-white transition-colors"
-        >
-          {heading.text}
-        </a>
-      </li>
-    ))}
-  </ul>
-</nav>
+{items.length > 0 && (
+  <details
+    data-toc-details
+    class="group lg:sticky lg:top-[calc(var(--header-h)+16px)] lg:max-h-[calc(100vh-var(--header-h)-2rem)] lg:overflow-y-auto rounded-lg border border-white/5 bg-slate-900/60 lg:border-0 lg:bg-transparent lg:rounded-none"
+  >
+    <summary class="lg:hidden flex items-center justify-between gap-2 px-4 py-3 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">{title}</span>
+      <span class="text-slate-500 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
+    </summary>
+    <nav class="px-4 pb-4 pt-1 lg:p-0" aria-label="Table of contents">
+      <h3 class="hidden lg:block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">{title}</h3>
+      <ul class="space-y-1 text-sm border-l border-slate-700">
+        {items.map(heading => (
+          <li class={heading.depth === 3 ? 'ml-3' : ''}>
+            <a
+              href={`#${heading.slug}`}
+              data-toc-link
+              data-section={heading.slug}
+              class="toc-link block pl-3 -ml-px py-1 border-l border-transparent text-slate-400 hover:text-white transition-colors"
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </details>
+)}
 
 <style>
   .toc-link.is-active {
@@ -45,6 +51,15 @@ const headings = markdown
   (function () {
     const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
     if (links.length === 0) return;
+
+    // Collapsed on mobile, always open on desktop.
+    const details = document.querySelector<HTMLDetailsElement>('[data-toc-details]');
+    if (details) {
+      const mq = window.matchMedia('(min-width: 1024px)');
+      const syncOpen = () => { details.open = mq.matches || details.open; };
+      mq.addEventListener('change', syncOpen);
+      syncOpen();
+    }
 
     const ids = links.map(l => l.dataset.section).filter(Boolean) as string[];
     const setActive = (id: string) => {

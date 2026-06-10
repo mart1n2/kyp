@@ -18,80 +18,57 @@ for (const p of protocols) {
 const chains = Array.from(chainCounts.keys()).sort();
 const riskLevels = ['Critical', 'High', 'Medium', 'Low'];
 const gates = ['Pass', 'Conditional', 'Watchlist', 'Fail', 'Inconclusive'];
+
+const groups = [
+  { legend: 'Gate Outcome', cls: 'filter-gate', items: gates.map(g => ({ value: g, count: gateCounts.get(g) ?? 0 })) },
+  { legend: 'Chain', cls: 'filter-chain', items: chains.map(c => ({ value: c, count: chainCounts.get(c) ?? 0 })) },
+  { legend: 'Risk Level', cls: 'filter-risk', items: riskLevels.map(r => ({ value: r, count: riskCounts.get(r) ?? 0 })) },
+];
 ---
 
-<aside class="sticky top-4 space-y-5">
-  <div class="flex items-center justify-between">
-    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Filters</h2>
-    <button
-      type="button"
-      data-clear-filters
-      class="text-xs text-slate-500 hover:text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed"
-      disabled
-    >
-      Clear all
-    </button>
-  </div>
+<aside class="lg:sticky lg:top-[calc(var(--header-h)+16px)] lg:max-h-[calc(100vh-var(--header-h)-2rem)] lg:overflow-y-auto">
+  <details data-filter-details class="group rounded-lg border border-white/5 bg-slate-900/60 lg:border-0 lg:bg-transparent lg:rounded-none">
+    <summary class="lg:hidden flex items-center justify-between gap-2 px-4 py-3 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+      <span class="text-sm font-semibold uppercase tracking-wider text-slate-400">Filters</span>
+      <span class="flex items-center gap-2">
+        <span data-active-filter-count class="hidden px-1.5 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] font-semibold leading-none"></span>
+        <span class="text-slate-500 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
+      </span>
+    </summary>
 
-  <div>
-    <h3 class="font-semibold mb-2 text-slate-200">Gate Outcome</h3>
-    <ul class="space-y-1.5">
-      {gates.map(g => {
-        const n = gateCounts.get(g) ?? 0;
-        return (
-          <li>
-            <label class="flex items-center justify-between gap-2 group cursor-pointer text-sm" data-disabled={n === 0 ? 'true' : undefined}>
-              <span class="flex items-center gap-2">
-                <input type="checkbox" value={g} class="filter-gate rounded accent-blue-500" disabled={n === 0} />
-                <span class={n === 0 ? 'text-slate-600' : 'text-slate-300 group-hover:text-white'}>{g}</span>
-              </span>
-              <span class="text-xs text-slate-500">{n}</span>
-            </label>
-          </li>
-        );
-      })}
-    </ul>
-  </div>
+    <div class="px-4 pb-4 pt-1 lg:p-0 space-y-5">
+      <div class="flex items-center justify-between">
+        <h2 class="hidden lg:block text-sm font-semibold uppercase tracking-wider text-slate-400">Filters</h2>
+        <button
+          type="button"
+          data-clear-filters
+          class="text-xs text-slate-500 hover:text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
+          disabled
+        >
+          Clear all
+        </button>
+      </div>
 
-  <div>
-    <h3 class="font-semibold mb-2 text-slate-200">Chain</h3>
-    <ul class="space-y-1.5">
-      {chains.map(chain => {
-        const n = chainCounts.get(chain) ?? 0;
-        return (
-          <li>
-            <label class="flex items-center justify-between gap-2 group cursor-pointer text-sm">
-              <span class="flex items-center gap-2">
-                <input type="checkbox" value={chain} class="filter-chain rounded accent-blue-500" />
-                <span class="text-slate-300 group-hover:text-white">{chain}</span>
-              </span>
-              <span class="text-xs text-slate-500">{n}</span>
-            </label>
-          </li>
-        );
-      })}
-    </ul>
-  </div>
-
-  <div>
-    <h3 class="font-semibold mb-2 text-slate-200">Risk Level</h3>
-    <ul class="space-y-1.5">
-      {riskLevels.map(level => {
-        const n = riskCounts.get(level) ?? 0;
-        return (
-          <li>
-            <label class="flex items-center justify-between gap-2 group cursor-pointer text-sm" data-disabled={n === 0 ? 'true' : undefined}>
-              <span class="flex items-center gap-2">
-                <input type="checkbox" value={level} class="filter-risk rounded accent-blue-500" disabled={n === 0} />
-                <span class={n === 0 ? 'text-slate-600' : 'text-slate-300 group-hover:text-white'}>{level}</span>
-              </span>
-              <span class="text-xs text-slate-500">{n}</span>
-            </label>
-          </li>
-        );
-      })}
-    </ul>
-  </div>
+      {groups.map(group => (
+        <fieldset>
+          <legend class="font-semibold mb-2 text-slate-200">{group.legend}</legend>
+          <ul class="space-y-1.5">
+            {group.items.map(({ value, count }) => (
+              <li>
+                <label class="flex items-center justify-between gap-2 group/item cursor-pointer text-sm">
+                  <span class="flex items-center gap-2">
+                    <input type="checkbox" value={value} class={`${group.cls} rounded accent-blue-500`} disabled={count === 0} />
+                    <span class={count === 0 ? 'text-slate-600' : 'text-slate-300 group-hover/item:text-white'}>{value}</span>
+                  </span>
+                  <span class="text-xs text-slate-500 font-mono">{count}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      ))}
+    </div>
+  </details>
 </aside>
 
 <script>
@@ -104,8 +81,38 @@ const gates = ['Pass', 'Conditional', 'Watchlist', 'Fail', 'Inconclusive'];
     const matchCountEl = document.getElementById('match-count');
     const emptyStateEl = document.getElementById('empty-state');
     const grid = document.getElementById('protocol-grid');
+    const activeCountEl = document.querySelector<HTMLElement>('[data-active-filter-count]');
 
-    const apply = () => {
+    const PARAMS: Array<[string, string]> = [['filter-gate', 'gate'], ['filter-chain', 'chain'], ['filter-risk', 'risk']];
+
+    const syncUrl = () => {
+      const params = new URLSearchParams(location.search);
+      for (const [cls, key] of PARAMS) {
+        const values = sel(cls);
+        if (values.length > 0) params.set(key, values.join(','));
+        else params.delete(key);
+      }
+      const qs = params.toString();
+      history.replaceState(null, '', qs ? `${location.pathname}?${qs}` : location.pathname);
+    };
+
+    const readUrl = () => {
+      const params = new URLSearchParams(location.search);
+      let any = false;
+      for (const [cls, key] of PARAMS) {
+        const values = (params.get(key) ?? '').split(',').filter(Boolean);
+        if (values.length === 0) continue;
+        document.querySelectorAll<HTMLInputElement>(`.${cls}`).forEach(box => {
+          if (values.includes(box.value) && !box.disabled) {
+            box.checked = true;
+            any = true;
+          }
+        });
+      }
+      return any;
+    };
+
+    const apply = (updateUrl = true) => {
       const chains = sel('filter-chain');
       const risks = sel('filter-risk');
       const gates = sel('filter-gate');
@@ -138,8 +145,13 @@ const gates = ['Pass', 'Conditional', 'Watchlist', 'Fail', 'Inconclusive'];
         grid.classList.toggle('hidden', isEmpty);
       }
 
-      const anyActive = chains.length + risks.length + gates.length > 0;
-      if (clearBtn) clearBtn.disabled = !anyActive;
+      const activeCount = chains.length + risks.length + gates.length;
+      if (clearBtn) clearBtn.disabled = activeCount === 0;
+      if (activeCountEl) {
+        activeCountEl.textContent = String(activeCount);
+        activeCountEl.classList.toggle('hidden', activeCount === 0);
+      }
+      if (updateUrl) syncUrl();
     };
 
     document.addEventListener('change', e => {
@@ -156,6 +168,19 @@ const gates = ['Pass', 'Conditional', 'Watchlist', 'Fail', 'Inconclusive'];
       });
     }
 
-    apply();
+    // Collapsed on mobile, always open on desktop.
+    const details = document.querySelector<HTMLDetailsElement>('[data-filter-details]');
+    if (details) {
+      const mq = window.matchMedia('(min-width: 1024px)');
+      const syncOpen = () => { details.open = mq.matches || details.open; };
+      mq.addEventListener('change', syncOpen);
+      syncOpen();
+    }
+
+    const hadUrlState = readUrl();
+    // Open the mobile panel when arriving on a shared filtered link, so the
+    // active filters are visible.
+    if (hadUrlState && details && !details.open) details.open = true;
+    apply(false);
   })();
 </script>

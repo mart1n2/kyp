@@ -2,7 +2,7 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://kyp.one/sitemap-index.xml
+Sitemap: https://www.kyp.one/sitemap-index.xml
 
 # AI crawlers
 User-agent: GPTBot
