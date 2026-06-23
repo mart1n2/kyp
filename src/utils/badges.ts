@@ -44,6 +44,7 @@ const explorerBase: Record<string, string> = {
   Base: 'https://basescan.org/address/',
   Avalanche: 'https://snowtrace.io/address/',
   HyperEVM: 'https://hyperevmscan.io/address/',
+  Mezo: 'https://explorer.mezo.org/address/',
 };
 
 export function explorerUrlFor(chain?: string): string {
