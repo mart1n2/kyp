@@ -1,0 +1,220 @@
+{
+  "slug": "smusd-savings-strategy-mezo-2026-06-09",
+  "protocol": "MUSD Savings Strategy (sMUSD)",
+  "protocolSlug": "smusd-savings-strategy",
+  "chain": "Mezo",
+  "auditDate": "06/09/2026",
+  "complexityTier": "Moderate",
+  "securityScore": 72,
+  "securityGrade": "B",
+  "riskLevel": "Medium",
+  "dealBreakers": "0 Failed — Gate cleared",
+
+  "dealBreakerGate": "Conditional",
+  "monitoringCadence": "Weekly",
+
+  "findingsSummary": "The MUSD savings strategy (sMUSD vault + IdleStrategy + VaultGauge) is sound at the code layer — all three contracts are verified, double-audited with 100% of findings addressed, Slither-clean, and run par 1:1 mechanics with instant fee-free exit; the par invariant holds exactly on-chain (strategy MUSD = sMUSD supply ≈ $6.7M). The grade is held below A− by a governance concentration rather than a code defect: the upgradeable vault and its setStrategy() migration are controlled by a no-timelock 5/9 Mezo-team Safe that can move 100% of principal instantly. Staking routes ~99% of supply through the Velodrome ve/Voter system, which review confirmed touches rewards and emissions only — never staked principal. The deal-breaker gate clears with no failures.",
+
+  "keyFindings": [
+    "Admin can drain 100% of principal at will: upgradeable vault + setStrategy(), both under a no-timelock 5/9 Safe",
+    "Today's safety depends on the strategy staying Idle — a config switch to a yield venue adds external/DoS risk",
+    "~99% of sMUSD lives in the gauge; the Velodrome ve/Voter layer touches rewards only, never staked principal",
+    "All three contracts are verified, double-audited (Halborn + Thesis Defense, 100% addressed), and Slither-clean",
+    "Par 1:1 mechanics with instant fee-free exit at every layer; on-chain par invariant holds (strategy MUSD = sMUSD supply)"
+  ],
+
+  "dealBreakerSummary": { "pass": 14, "fail": 0, "na": 9, "inconclusive": 0 },
+
+  "dealBreakerDetails": [
+    { "item": "EOA Upgrade Control",            "status": "PASS", "category": "Access Control & Governance", "evidence": "Vault proxy admin owned by the 5/9 Safe 0x98D8…7C7a; IdleStrategy and VaultGauge are immutable." },
+    { "item": "EOA Fund Control",               "status": "PASS", "category": "Access Control & Governance", "evidence": "No single-EOA withdrawal; principal moves via onlyOwner setStrategy / onlyVault strategy; staked sMUSD is withdrawable only by the staker." },
+    { "item": ">60% Governance Centralization", "status": "N/A",  "category": "Access Control & Governance", "evidence": "No governance token in scope." },
+    { "item": "Governance Mechanism Bypass",    "status": "N/A",  "category": "Access Control & Governance", "evidence": "No token voting in scope (MEZO/ve external, audited under Earn)." },
+    { "item": "Timelock Backdoors",             "status": "PASS", "category": "Access Control & Governance", "evidence": "No bypass functions, but NO timelock on the vault upgrade / setStrategy path — scored in §2.2, not a hard breaker." },
+    { "item": "No Emergency Controls",          "status": "N/A",  "category": "Access Control & Governance", "evidence": "Non-custodial; instant par withdrawal + unconditional unstake are the user's exit." },
+
+    { "item": "Direct Pool Price Oracle",       "status": "N/A", "category": "Oracle & Price Integrity",      "evidence": "No external price feed; sMUSD:MUSD is fixed 1:1 (par)." },
+    { "item": "Manual Price Control",           "status": "N/A", "category": "Oracle & Price Integrity",      "evidence": "No price oracle; gauge rewards are time-based MEZO emissions." },
+
+    { "item": "Known Compiler Bugs",            "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Solidity 0.8.33 (vault/strategy), 0.8.24 (gauge); no applicable CVE." },
+    { "item": "No Reentrancy Protection",       "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "nonReentrant on all user/state-changing paths; MUSD/sMUSD have no attacker callback." },
+    { "item": "Unlimited Minting",              "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "sMUSD minted strictly 1:1 vs MUSD pulled in; the gauge mints nothing (emissions pulled from voter, bounded by RewardRateTooHigh)." },
+    { "item": "Unsafe Delegatecall / Call",     "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "No delegatecall; SafeERC20 only." },
+    { "item": "Uninitialized Implementation",   "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Vault calls _disableInitializers(); strategy and gauge are immutable." },
+    { "item": "Unprotected Initializer",        "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Vault initialize() guarded; no initializer on strategy/gauge." },
+
+    { "item": "No Audit + High TVL",            "status": "PASS", "category": "Audit & Verification",         "evidence": "TVL ~$6.7M; two top-tier audits cover the full Earn system (Halborn + Thesis Defense), 100% of findings addressed." },
+    { "item": "Unverified Contracts",           "status": "PASS", "category": "Audit & Verification",         "evidence": "All three (MUSDSavingsRate, IdleStrategy, VaultGauge) verified on api.explorer.mezo.org; reviewed directly." },
+    { "item": "Critical Unfixed Issues",        "status": "PASS", "category": "Audit & Verification",         "evidence": "Halborn: 0 Critical, 1 High — all reported findings addressed per the report." },
+
+    { "item": "Zero Flash Loan Protection",     "status": "PASS", "category": "Economic & Liquidity",         "evidence": "Par redemption; the vault flushes yield on deposit/withdraw; Halborn 7.1 (flash-loan yield-index) reported addressed (verify deployed mitigation, L-2)." },
+    { "item": "Broken Tokenomics",              "status": "PASS", "category": "Economic & Liquidity",         "evidence": "Fee-yield = real MUSD protocol fees; MEZO emissions depend on the external Velodrome schedule (governance, not a contract defect)." },
+    { "item": "No Slippage Protection",         "status": "N/A",  "category": "Economic & Liquidity",         "evidence": "1:1 par; no swaps." },
+
+    { "item": "Centralized Bridge",             "status": "N/A", "category": "Cross-Chain & Bridges",         "evidence": "Not cross-chain; the strategy operates entirely on Mezo." },
+    { "item": "No Transfer Limits",             "status": "N/A", "category": "Cross-Chain & Bridges",         "evidence": "Not a bridge." },
+    { "item": "No Token Verification",          "status": "N/A", "category": "Cross-Chain & Bridges",         "evidence": "Not a bridge." }
+  ],
+
+  "adminControlMatrix": [
+    {
+      "surface": "sMUSD vault — Proxy upgrade",
+      "controller": "0x98D8899c3030741925BE630C710A98B57F397C7a",
+      "controllerType": "Multisig",
+      "multisigConfig": "5/9",
+      "delayHours": 0,
+      "worstCase": "Upgrade the vault implementation to drain 100% of deposited principal — no timelock, single transaction"
+    },
+    {
+      "surface": "sMUSD vault — setStrategy (onlyOwner)",
+      "controller": "0x98D8899c3030741925BE630C710A98B57F397C7a",
+      "controllerType": "Multisig",
+      "multisigConfig": "5/9",
+      "delayHours": 0,
+      "worstCase": "Migrate 100% of principal to an owner-chosen strategy contract instantly"
+    },
+    {
+      "surface": "sMUSD vault — setPCV / setVaultGauge / setGaugeYieldClaimCap (onlyOwner)",
+      "controller": "0x98D8899c3030741925BE630C710A98B57F397C7a",
+      "controllerType": "Multisig",
+      "multisigConfig": "5/9",
+      "delayHours": 0,
+      "worstCase": "Redirect the yield source/gauge or change the fee-claim cap — affects rewards, not principal"
+    },
+    {
+      "surface": "Velodrome Voter / VeBTC — Proxy upgrade & emergencyCouncil",
+      "controller": "0x98D8899c3030741925BE630C710A98B57F397C7a",
+      "controllerType": "Multisig",
+      "multisigConfig": "5/9",
+      "delayHours": 0,
+      "worstCase": "Upgrade the ve/Voter governance contracts or killGauge — extends the governance surface but cannot reach staked principal"
+    }
+  ],
+
+  "openIssues": [
+    {
+      "issue": "No-timelock 5/9 Safe can upgrade the vault or setStrategy to migrate 100% of principal (H-1)",
+      "category": "Access Control",
+      "severity": "High",
+      "impact": "Latent total-loss power over 100% of principal with no reaction window",
+      "recommendation": "Timelock the Safe; whitelist/delay strategy changes; cap the migratable amount",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "Yield misallocation during a strategy migration race (M-1)",
+      "category": "Smart Contract",
+      "severity": "Medium",
+      "impact": "Yield can be misallocated during a strategy migration",
+      "recommendation": "Found by Halborn 7.6; reported addressed — confirm in the deployed commit",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "AmountTooSmall revert can DoS deposit/withdraw if a future yield strategy returns dust (M-2)",
+      "category": "Economic",
+      "severity": "Medium",
+      "impact": "Latent deposit/withdraw DoS if a future strategy returns dust yield (N/A while on IdleStrategy)",
+      "recommendation": "Skip or round dust instead of reverting",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "Gauge _claimFees uses deprecated safeApprove(feesVotingReward, …) (M-3)",
+      "category": "Smart Contract",
+      "severity": "Medium",
+      "impact": "Residual allowance can cause fee-forwarding DoS (rewards only, not principal)",
+      "recommendation": "Use forceApprove",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "First depositor can capture accumulated pendingYield after a full-exit period (M-4)",
+      "category": "Economic",
+      "severity": "Medium",
+      "impact": "The first depositor after a full exit could capture accrued pending yield",
+      "recommendation": "Found by Halborn 7.7; reported addressed — confirm in the deployed commit",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "Single-step Ownable on vault; missing zero-checks (IdleStrategy vault, gauge withdraw) (L-1)",
+      "category": "Access Control",
+      "severity": "Low",
+      "impact": "Single-step ownership transfer plus minor missing zero-checks",
+      "recommendation": "Halborn 7.10 (ownership) reported addressed; minor",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "Halborn 7.1 flash-loan yield-index fix (min deposit duration) vs deployed instant withdrawal (L-2)",
+      "category": "Economic",
+      "severity": "Low",
+      "impact": "The deployed flash-loan mitigation is unconfirmed given a 0h instant-withdrawal lock",
+      "recommendation": "Confirm the deployed flash-loan mitigation given the 0h withdrawal lock",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "Docs claim exchange-rate appreciation; code is par + separately-claimed yield (L-3)",
+      "category": "Documentation",
+      "severity": "Low",
+      "impact": "Docs/code mismatch — docs imply share-price appreciation; the code is par with separately-claimed yield",
+      "recommendation": "Fix the docs / clarify the gauge-redirect UX",
+      "priority": "P2",
+      "timeline": "3 months"
+    }
+  ],
+
+  "auditHistory": [
+    {
+      "date": "2026-01-08",
+      "firm": "Halborn",
+      "tier": 2,
+      "scope": "Mezo Earn — vault + strategy + gauge + ve; 100% of findings addressed",
+      "findings": { "critical": 0, "high": 1, "medium": 4, "low": 4 },
+      "reportUrl": ""
+    },
+    {
+      "date": "2026-01-30",
+      "firm": "Thesis Defense",
+      "tier": 2,
+      "scope": "mezo-org/tigris-token-launch @ afafb42 — veBTC/veMEZO VotingEscrow, gauges (incl. MUSD Savings Rate), boost, reward distribution",
+      "reportUrl": ""
+    }
+  ],
+
+  "accessControlRoles": [
+    { "contract": "sMUSD vault (MUSDSavingsRate)", "role": "owner (OwnableUpgradeable)",                   "holder": "0x98D8…7C7a (5/9 Safe)", "powers": "setStrategy, setPCV, setVaultGauge, setGaugeYieldClaimCap; upgrade via ProxyAdmin" },
+    { "contract": "sMUSD vault ProxyAdmin",        "role": "owner",                                        "holder": "0x98D8…7C7a (5/9 Safe)", "powers": "Upgrade the vault implementation" },
+    { "contract": "IdleStrategy",                  "role": "onlyVault",                                    "holder": "sMUSD vault",             "powers": "allocate / deallocate / migrate principal (immutable contract)" },
+    { "contract": "VaultGauge",                    "role": "voter-only",                                   "holder": "Velodrome Voter",         "powers": "notifyRewardAmount (MEZO emissions); immutable, staker-only withdraw" },
+    { "contract": "Velodrome Voter / VeBTC",       "role": "ProxyAdmin owner / governor / emergencyCouncil", "holder": "0x98D8…7C7a (5/9 Safe)", "powers": "Upgrade ve/Voter; killGauge (emergencyCouncil) — rewards layer only" }
+  ],
+
+  "contracts": [
+    { "name": "sMUSD vault (proxy)",       "address": "0xb4D498029af77680cD1eF828b967f010d06C51CC", "verified": true,  "type": "TransparentUpgradeableProxy",            "compiler": "0.8.33" },
+    { "name": "sMUSD vault (impl)",        "address": "0xb33c3f97bf3b7df59417d114c694353e42929e87", "verified": true,  "type": "MUSDSavingsRate (OZ v4 upgradeable, ERC2771)", "compiler": "0.8.33" },
+    { "name": "sMUSD vault ProxyAdmin",    "address": "0x973c1a54b1b8d4ad04ea1d8469cda159672b95d0", "verified": true,  "type": "ProxyAdmin (owner = 5/9 Safe)",          "compiler": "0.8.33" },
+    { "name": "IdleStrategy",              "address": "0x0C0944713c185ea3e64F5609ECee3fB3C054a295", "verified": true,  "type": "Immutable strategy (holds 100% principal)", "compiler": "0.8.33" },
+    { "name": "VaultGauge",                "address": "0x677817bF3e44b90E8F95222F75e2950b7904a401", "verified": true,  "type": "Immutable Velodrome-v2 gauge (~99% of sMUSD)", "compiler": "0.8.24" },
+    { "name": "Reward token (MEZO)",       "address": "0x7B7c000000000000000000000000000000000001", "verified": false, "type": "Emission token (Mezo precompile)",       "compiler": "n/a" },
+    { "name": "Voter (proxy)",             "address": "0x48233cCC97B87Ba93bCA212cbEe48e3210211f03", "verified": true,  "type": "Velodrome Voter (TransparentUpgradeableProxy)", "compiler": "0.8.24" },
+    { "name": "VotingEscrow / ve (proxy)", "address": "0x3D4b1b884A7a1E59fE8589a3296EC8f8cBB6f279", "verified": true,  "type": "VeBTC VotingEscrow (proxy)",             "compiler": "0.8.24" },
+    { "name": "Underlying asset (MUSD)",   "address": "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186", "verified": false, "type": "Underlying asset — see MUSD report",     "compiler": "0.8.24" },
+    { "name": "PCV (yield source)",        "address": "0x391EcC7ffEFc48cff41D0F2Bb36e38b82180B993", "verified": false, "type": "MUSD PCV (yield source)",                "compiler": "0.8.24" }
+  ],
+
+  "protocolMeta": {
+    "website": "https://mezo.org/",
+    "docs": "https://mezo.org/docs",
+    "github": "",
+    "type": "Yield Vault + Staking Gauge",
+    "subtype": "MUSD savings vault (sMUSD) + IdleStrategy + Velodrome-v2 VaultGauge",
+    "tvlUsd": 6700000,
+    "tvlSource": "On-chain strategy MUSD balance (≈$6.7M); not listed on DeFiLlama",
+    "launchDate": ""
+  },
+
+  "bugBounty": null
+}

@@ -27,10 +27,10 @@ export async function getStaticPaths() {
 
 const { report, protocolSlug } = Astro.props;
 const {
-  protocol, chain, riskLevel, securityScore, securityGrade, auditDate, auditor,
+  protocol, chain, riskLevel, securityScore, securityGrade, auditDate,
   dealBreakerDetails, accessControlRoles, contracts, keyFindings, findingsSummary,
   dealBreakerGate, monitoringCadence,
-  complexityTier, frameworkVersion,
+  complexityTier,
   openIssues, auditHistory, adminControlMatrix,
   protocolMeta, bugBounty, dealBreakerSummary,
 } = report.data;
@@ -95,7 +95,6 @@ const sections = [
     protocol={protocol}
     chain={chain}
     auditDate={auditDate}
-    auditor={auditor}
     type={protocolMeta?.type}
     subtype={protocolMeta?.subtype}
     tvlUsd={protocolMeta?.tvlUsd ?? null}
@@ -105,7 +104,6 @@ const sections = [
     securityGrade={securityGrade}
     monitoringCadence={monitoringCadence}
     complexityTier={complexityTier}
-    frameworkVersion={frameworkVersion}
     failedDealBreakers={failedDealBreakers}
     totalDealBreakers={totalDealBreakers}
     openIssuesP0={openIssuesP0}
@@ -343,7 +341,7 @@ const sections = [
         <li>
           <a href={`/reports/${r.data.protocolSlug}/${r.data.slug}`} class="kyp-card block p-3">
             <div class="flex items-center justify-between gap-3">
-              <span class="text-sm">{r.data.auditDate} — {r.data.auditor}</span>
+              <span class="text-sm">{r.data.auditDate} — {r.data.securityGrade}</span>
               <span class={`text-xs font-semibold ${riskTextClass(r.data.riskLevel)}`}>{r.data.riskLevel}</span>
             </div>
           </a>

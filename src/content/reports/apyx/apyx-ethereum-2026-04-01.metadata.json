@@ -4,10 +4,7 @@
   "protocolSlug": "apyx",
   "chain": "Ethereum",
   "auditDate": "04/01/2026",
-  "auditor": "Martin & Agent",
   "complexityTier": "Moderate",
-  "frameworkVersion": "V1.2.3",
-
   "securityScore": 72,
   "securityGrade": "B",
   "riskLevel": "Medium",

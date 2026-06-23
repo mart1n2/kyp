@@ -3,21 +3,19 @@
   "title": "DeFi Audit Report Metadata",
   "description": "Public-facing audit findings. Fields describe the assessment outcome; they do not constitute financial advice.",
   "type": "object",
-  "required": ["protocol", "chain", "auditDate", "auditor", "riskLevel", "securityScore", "securityGrade"],
+  "required": ["protocol", "chain", "auditDate", "riskLevel", "securityScore", "securityGrade"],
   "properties": {
     "slug":           { "type": "string", "description": "Report filename slug (no extension)" },
     "protocol":       { "type": "string" },
     "protocolSlug":   { "type": "string" },
     "chain":          { "type": "string" },
     "auditDate":      { "type": "string" },
-    "auditor":        { "type": "string" },
     "securityScore":  { "type": "number", "minimum": 0, "maximum": 100 },
     "securityGrade":  { "type": "string", "enum": ["A", "B", "C", "D", "E", "F", "N/A"] },
     "riskLevel":      { "type": "string", "enum": ["Critical", "High", "Medium", "Low", "Unknown"] },
     "dealBreakers":   { "type": "string", "description": "Headline summary, e.g. '3 Failed — Gate not cleared'" },
 
     "complexityTier":    { "type": "string", "description": "Simple / Moderate / Complex" },
-    "frameworkVersion":  { "type": "string" },
 
     "dealBreakerGate":   { "type": "string", "enum": ["Pass", "Conditional", "Watchlist", "Fail", "Inconclusive"], "description": "Gate outcome — descriptive of the assessment result." },
     "monitoringCadence": { "type": "string", "enum": ["Daily", "Weekly", "Monthly", "Quarterly", "N/A"], "description": "Suggested follow-up cadence for re-running the assessment." },

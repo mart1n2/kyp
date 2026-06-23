@@ -4,10 +4,7 @@
   "protocolSlug": "altura-trade",
   "chain": "HyperEVM",
   "auditDate": "04/07/2026",
-  "auditor": "Automated Pipeline",
   "complexityTier": "Simple",
-  "frameworkVersion": "V1.2.3",
-
   "securityScore": 0,
   "securityGrade": "F",
   "riskLevel": "Critical",

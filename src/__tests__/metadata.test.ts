@@ -39,7 +39,6 @@ describe('metadata JSON validation', () => {
         expect(metadata.protocolSlug).toBeTruthy();
         expect(metadata.chain).toBeTruthy();
         expect(metadata.auditDate).toBeTruthy();
-        expect(metadata.auditor).toBeTruthy();
         expect(metadata.securityScore).toBeGreaterThanOrEqual(0);
         expect(metadata.securityScore).toBeLessThanOrEqual(100);
         expect(['A', 'B', 'C', 'D', 'E', 'F', 'N/A']).toContain(metadata.securityGrade);

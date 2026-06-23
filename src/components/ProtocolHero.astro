@@ -6,7 +6,6 @@ interface Props {
   protocol: string;
   chain: string;
   auditDate: string;
-  auditor: string;
   type?: string;
   subtype?: string;
   tvlUsd?: number | null;
@@ -17,7 +16,6 @@ interface Props {
   securityGrade: string;
   monitoringCadence: string;
   complexityTier?: string;
-  frameworkVersion?: string;
 
   failedDealBreakers: number;
   totalDealBreakers: number;
@@ -33,9 +31,9 @@ interface Props {
 }
 
 const {
-  protocol, chain, auditDate, auditor, type, subtype, tvlUsd,
+  protocol, chain, auditDate, type, subtype, tvlUsd,
   dealBreakerGate, riskLevel, securityScore, securityGrade, monitoringCadence,
-  complexityTier, frameworkVersion,
+  complexityTier,
   failedDealBreakers, totalDealBreakers,
   openIssuesP0, openIssuesTotal,
   contractsCount, auditsCount, auditsTier1Count,
@@ -67,10 +65,7 @@ const typeLine = [type, subtype ? `(${subtype})` : ''].filter(Boolean).join(' ')
   <h1 class="text-3xl sm:text-4xl font-bold mb-2">{protocol}</h1>
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-400">
     <span>Audited {auditDate}{age && <span class="text-slate-500"> · {age}</span>}</span>
-    <span aria-hidden="true">·</span>
-    <span>{auditor}</span>
     {complexityTier && (<><span aria-hidden="true">·</span><span>Tier: {complexityTier}</span></>)}
-    {frameworkVersion && (<><span aria-hidden="true">·</span><span>Framework {frameworkVersion}</span></>)}
   </div>
 </header>
 

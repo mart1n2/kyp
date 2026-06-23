@@ -1,0 +1,222 @@
+{
+  "slug": "musd-mezo-2026-06-08",
+  "protocol": "MUSD (Mezo USD)",
+  "protocolSlug": "musd",
+  "chain": "Mezo",
+  "auditDate": "06/08/2026",
+  "complexityTier": "Moderate–Complex",
+  "securityScore": 60,
+  "securityGrade": "B",
+  "riskLevel": "Medium",
+  "dealBreakers": "0 Failed — Gate cleared",
+
+  "dealBreakerGate": "Conditional",
+  "monitoringCadence": "Weekly",
+
+  "findingsSummary": "MUSD is a faithful Liquity-v2-style BTC-CDP stablecoin with sound core mechanics — verified checks-effects-interactions on every native-BTC payout, symmetric interest accounting, and mint/burn authority correctly scoped to the canonical system contracts. The B grade reflects three governance and operational gaps rather than code defects: an untimelocked 5-of-9 Gnosis Safe holding full upgrade and mint-list authority, a single chain-native BTC/USD oracle with no fallback and no value-sanity bounds on the read path, and deployed bytecode that post-dates the only public audit and is unverified on the Mezo explorer. The deal-breaker gate clears with no failures.",
+
+  "keyFindings": [
+    "MUSD token is clean and minimal — mint/burn gated to canonical Liquity system contracts; no public mint path",
+    "Untimelocked 5/9 Gnosis Safe owns every ProxyAdmin and the token — single-tx upgrade or mint-list rug vector",
+    "Single chain-native BTC/USD oracle with no fallback and no price>0/deviation sanity bounds on the read path",
+    "Deployed bytecode post-dates the only public audit (Cantina 2025-04-15) and is unverified on Blockscout",
+    "Wormhole NTT bridge runs in locking mode and is not a minter — cannot inflate native MUSD supply"
+  ],
+
+  "dealBreakerSummary": { "pass": 15, "fail": 0, "na": 7, "inconclusive": 1 },
+
+  "dealBreakerDetails": [
+    { "item": "EOA Upgrade Control",            "status": "PASS", "category": "Access Control & Governance", "evidence": "All ProxyAdmins owned by the 5/9 Gnosis Safe 0x98D8899c3030741925BE630C710A98B57F397C7a (v1.3.0), not an EOA." },
+    { "item": "EOA Fund Control",               "status": "PASS", "category": "Access Control & Governance", "evidence": "No single-EOA fund-withdrawal path; admin powers are multisig-gated." },
+    { "item": ">60% Governance Centralization", "status": "N/A",  "category": "Access Control & Governance", "evidence": "No governance token; control is via the multisig." },
+    { "item": "Governance Mechanism Bypass",    "status": "N/A",  "category": "Access Control & Governance", "evidence": "No on-chain token voting." },
+    { "item": "Timelock Backdoors",             "status": "PASS", "category": "Access Control & Governance", "evidence": "No bypass functions, but there is NO timelock at all between the Safe and the ProxyAdmins/token — scored as a risk in §2.2, not a hard breaker." },
+    { "item": "No Emergency Controls",          "status": "N/A",  "category": "Access Control & Governance", "evidence": "Liquity-style non-custodial CDP has no pause; an upgrade is the only lever." },
+
+    { "item": "Direct Pool Price Oracle",       "status": "PASS", "category": "Oracle & Price Integrity",     "evidence": "Oracle is the Mezo L1 chain-native BTC/USD precompile, not a DEX spot price." },
+    { "item": "Manual Price Control",           "status": "PASS", "category": "Oracle & Price Integrity",     "evidence": "No setPrice; setOracle (onlyOwner/Safe) must point to a feed returning decimals()>0 and a nonzero price. Repointing risk scored in §2.4 (C-04)." },
+
+    { "item": "Known Compiler Bugs",            "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Solidity 0.8.24, no applicable CVE." },
+    { "item": "No Reentrancy Protection",       "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Strict CEI verified on all native-BTC payout paths; PCV adds nonReentrant." },
+    { "item": "Unlimited Minting",              "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Mint gated to system contracts; the Safe can add an arbitrary minter (centralization risk in §2.2, not a breaker)." },
+    { "item": "Unsafe Delegatecall / Call",     "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "No delegatecall; only SendCollateral raw .call{value} for native-BTC transfer." },
+    { "item": "Uninitialized Implementation",   "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "_disableInitializers() present in all upgradeable impls (one exception: GovernableVariables, D-1 — low impact)." },
+    { "item": "Unprotected Initializer",        "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "initializer/reinitializer modifiers present; on-chain initialized=true." },
+
+    { "item": "No Audit + High TVL",            "status": "PASS",         "category": "Audit & Verification", "evidence": "Cantina audit (2025-04-15); TVL ≈ $29M MUSD supply." },
+    { "item": "Unverified Contracts",           "status": "Inconclusive", "category": "Audit & Verification", "evidence": "Deployed bytecode is UNVERIFIED on Blockscout; reviewed against the official GitHub source. Not a hard breaker (source is public/open)." },
+    { "item": "Critical Unfixed Issues",        "status": "PASS",         "category": "Audit & Verification", "evidence": "No public unfixed Critical/High known; the Cantina PDF was not deep-read per scope." },
+
+    { "item": "Zero Flash Loan Protection",     "status": "PASS", "category": "Economic & Liquidity",         "evidence": "Oracle-priced CDP; no same-block DEX reads; core ops atomic and CEI-safe." },
+    { "item": "Broken Tokenomics",              "status": "N/A",  "category": "Economic & Liquidity",         "evidence": "Stablecoin; no APY emissions." },
+    { "item": "No Slippage Protection",         "status": "PASS", "category": "Economic & Liquidity",         "evidence": "Redemptions/adjustments use hints + max-fee parameters; the signature path carries deadlines." },
+
+    { "item": "Centralized Bridge",             "status": "N/A", "category": "Cross-Chain & Bridges",         "evidence": "The NTT Manager on Mezo runs in locking mode and holds no mint/burn rights on the native token; guardian trust applies only to wrapped MUSD on other chains (out of scope)." },
+    { "item": "No Transfer Limits",             "status": "N/A", "category": "Cross-Chain & Bridges",         "evidence": "Bridge rate limits are an NTT/destination-chain concern; native token supply is unaffected." },
+    { "item": "No Token Verification",          "status": "N/A", "category": "Cross-Chain & Bridges",         "evidence": "Native token; canonicality enforced by the NTT lock/mint invariant off-chain." }
+  ],
+
+  "adminControlMatrix": [
+    {
+      "surface": "All ProxyAdmins (core contracts) — Proxy upgrade",
+      "controller": "0x98D8899c3030741925BE630C710A98B57F397C7a",
+      "controllerType": "Multisig",
+      "multisigConfig": "5/9",
+      "delayHours": 0,
+      "worstCase": "Upgrade BorrowerOperations to mint freely or ActivePool to drain BTC collateral — no timelock, single transaction"
+    },
+    {
+      "surface": "MUSD token — Owner (mint list)",
+      "controller": "0x98D8899c3030741925BE630C710A98B57F397C7a",
+      "controllerType": "Multisig",
+      "multisigConfig": "5/9",
+      "delayHours": 0,
+      "worstCase": "addToMintList an arbitrary address to mint unlimited MUSD"
+    },
+    {
+      "surface": "PriceFeed — setOracle (onlyOwner)",
+      "controller": "0x98D8899c3030741925BE630C710A98B57F397C7a",
+      "controllerType": "Multisig",
+      "multisigConfig": "5/9",
+      "delayHours": 0,
+      "worstCase": "Repoint the BTC/USD oracle to a malicious feed — mis-price collateral, minting, and liquidations"
+    },
+    {
+      "surface": "PCV / GovernableVariables — Owner",
+      "controller": "0x98D8899c3030741925BE630C710A98B57F397C7a",
+      "controllerType": "Multisig",
+      "multisigConfig": "5/9",
+      "delayHours": 0,
+      "worstCase": "Adjust PCV/governance parameters; movements are scoped to PCV's own capital and cannot pull user StabilityPool deposits or trove collateral"
+    }
+  ],
+
+  "openIssues": [
+    {
+      "issue": "Untimelocked 5/9 Safe can mint (via the mint list) or upgrade to drain (A-1/A-2)",
+      "category": "Access Control",
+      "severity": "High",
+      "impact": "Latent total loss if the multisig is compromised or malicious — a single transaction can add a minter or replace an implementation",
+      "recommendation": "Add a timelock to the ProxyAdmin owner; cap and/or timelock mint-list additions",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "Deployed code post-dates the Cantina audit and bytecode is unverified (RF)",
+      "category": "Code Quality",
+      "severity": "High",
+      "impact": "Audited code is not provably the deployed code; the PCV V2 delta carries unknown risk",
+      "recommendation": "Re-audit the V2 delta; verify the deployed bytecode on the Mezo explorer",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "Single chain-native oracle with no fallback and no value-sanity bounds (C-01)",
+      "category": "Oracle",
+      "severity": "Medium",
+      "impact": "Per-block updates (~3s) keep the 60s staleness window safe, so no normal-operation freeze; the residual risk is a single bad/zero price being trusted directly, or a chain oracle-module stall freezing the system",
+      "recommendation": "Add a fallback (e.g. the Mezo Pyth feed at 0x2880…7B43) plus deviation/circuit-breaker bounds",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "fetchPrice lacks a price>0 / round-completeness check (C-02)",
+      "category": "Oracle",
+      "severity": "Medium",
+      "impact": "A zero or negative answer would mis-price collateral or disable liquidations with no guard",
+      "recommendation": "Add value and round-completeness guards on the read path",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "Fixed redemption fee with no dynamic base-rate decay (C-03)",
+      "category": "Economic",
+      "severity": "Medium",
+      "impact": "Weaker peg-restoration force under a sustained depeg",
+      "recommendation": "Restore Liquity's dynamic base-rate spike/decay mechanism",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "MUSD transfer reverts on to==address(this) — non-standard ERC20 behavior (D-2)",
+      "category": "Dependencies",
+      "severity": "Low",
+      "impact": "Integration and composability breakage for naive integrators",
+      "recommendation": "Document the deviation; assess integrator impact",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "GovernableVariables implementation missing _disableInitializers() (D-1)",
+      "category": "Code Quality",
+      "severity": "Low",
+      "impact": "The implementation can be initialized (low impact behind a proxy)",
+      "recommendation": "Add a constructor disable for consistency",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "PCV withdraw* lack nonReentrant; a malicious feeRecipient can DoS distributeMUSD (B-2/B-3)",
+      "category": "Smart Contract",
+      "severity": "Low",
+      "impact": "Griefing or limited denial-of-service against fee distribution",
+      "recommendation": "Add reentrancy guards; validate the feeRecipient",
+      "priority": "P2",
+      "timeline": "3 months"
+    }
+  ],
+
+  "auditHistory": [
+    {
+      "date": "2025-04-15",
+      "firm": "Cantina",
+      "tier": 1,
+      "scope": "MUSD smart contracts (not deep-read per scope; pre-dates the PCV V2 upgrade)",
+      "reportUrl": "https://mezo.org/docs/audits/2025-04-15%20-%20Cantina%20-%20MUSD.pdf"
+    }
+  ],
+
+  "accessControlRoles": [
+    { "contract": "MUSD (token)",         "role": "owner (Ownable)",  "holder": "0x98D8…7C7a (5/9 Safe)",                          "powers": "Manage the mint list and burn list (addToMintList, etc.)" },
+    { "contract": "All ProxyAdmins",      "role": "owner",            "holder": "0x98D8…7C7a (5/9 Safe)",                          "powers": "Upgrade every core proxy (BorrowerOperations, TroveManager, ActivePool, PriceFeed, PCV, …)" },
+    { "contract": "PriceFeed",            "role": "owner",            "holder": "0x98D8…7C7a (5/9 Safe)",                          "powers": "setOracle — repoint the BTC/USD price source" },
+    { "contract": "PCV",                  "role": "owner",            "holder": "0x98D8…7C7a (5/9 Safe)",                          "powers": "Governance fund movements scoped to PCV's own capital" },
+    { "contract": "MUSD (token)",         "role": "minter",           "holder": "BorrowerOperations, InterestRateManager",         "powers": "Mint MUSD" },
+    { "contract": "MUSD (token)",         "role": "burner",           "holder": "BorrowerOperations, TroveManager, StabilityPool", "powers": "Burn MUSD" },
+    { "contract": "InterestRateManager",  "role": "owner",            "holder": "Renounced post-setup",                            "powers": "Ownership renounced after configuration" }
+  ],
+
+  "contracts": [
+    { "name": "MUSD (token)",                  "address": "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186", "verified": false, "type": "Immutable (Ownable ERC20Permit)",       "compiler": "0.8.24" },
+    { "name": "BorrowerOperations",            "address": "0x44b1bac67dDA612a41a58AAf779143B181dEe031", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "TroveManager",                  "address": "0x94AfB503dBca74aC3E4929BACEeDfCe19B93c193", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "StabilityPool",                 "address": "0x73245Eff485aB3AAc1158B3c4d8f4b23797B0e32", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "ActivePool",                    "address": "0x3012C2fE1240e3754E5C200A0946bb0E07474876", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "DefaultPool",                   "address": "0xE4B5913C0c82dB2eFC553b95c0173efb90a07c8B", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "InterestRateManager",           "address": "0x4a453700d157717Fe02fB62E7700ED7845048285", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "PCV",                           "address": "0x391EcC7ffEFc48cff41D0F2Bb36e38b82180B993", "verified": false, "type": "TransparentUpgradeableProxy (V2)",       "compiler": "0.8.24" },
+    { "name": "PriceFeed",                     "address": "0xc5aC5A8892230E0A3e1c473881A2de7353fFcA88", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "GovernableVariables",           "address": "0x560AC4Ea44Fb7EB2D4d3c00608CB1CAb2613d389", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "CollSurplusPool",               "address": "0xBF51807ACb3394B8550f0554FB9098856Ef5F491", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "SortedTroves",                  "address": "0x8C5DB4C62BF29c1C4564390d10c20a47E0b2749f", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "GasPool",                       "address": "0x3EB418BdBE95b4b9cf465ecfBD8424685ACD1Bc1", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "HintHelpers",                   "address": "0xD267b3bE2514375A075fd03C3D9CBa6b95317DC3", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "BorrowerOperationsSignatures",  "address": "0xB57ab578BF20b3e318f3EFAA587C51DBccE5df7a", "verified": false, "type": "TransparentUpgradeableProxy",           "compiler": "0.8.24" },
+    { "name": "Oracle — Skip precompile (BTC/USD)", "address": "0x7b7c000000000000000000000000000000000015", "verified": false, "type": "Consensus precompile (18 dec, per-block)", "compiler": "n/a" },
+    { "name": "NTT Manager (Mezo)",            "address": "0x7efb386675d75280D39Aae42964A6776DE0ee0bD", "verified": false, "type": "Wormhole NTT (locking mode)",            "compiler": "n/a" },
+    { "name": "Wormhole Transceiver (Mezo)",   "address": "0x56E27f1A8425515FFD4BD76A254Ac1a5c0B66D71", "verified": false, "type": "NTT transceiver",                        "compiler": "n/a" }
+  ],
+
+  "protocolMeta": {
+    "website": "https://mezo.org/docs/users/musd/",
+    "docs": "https://mezo.org/docs/users/musd/",
+    "github": "https://github.com/mezo-org/musd",
+    "type": "CDP / Synthetic Assets (stablecoin)",
+    "subtype": "Liquity-v2-style fork, BTC collateral, per-trove interest",
+    "tvlUsd": 29400000,
+    "tvlSource": "On-chain MUSD totalSupply (29,416,412 MUSD); not listed on DeFiLlama",
+    "launchDate": ""
+  },
+
+  "bugBounty": null
+}

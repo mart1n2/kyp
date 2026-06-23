@@ -4,10 +4,7 @@
   "protocolSlug": "saturn-credit",
   "chain": "Ethereum",
   "auditDate": "04/15/2026",
-  "auditor": "Automated Pipeline (V1.2.3)",
   "complexityTier": "Simple",
-  "frameworkVersion": "V1.2.3",
-
   "securityScore": 0,
   "securityGrade": "F",
   "riskLevel": "Critical",

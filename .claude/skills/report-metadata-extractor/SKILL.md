@@ -64,7 +64,7 @@ If the schema files have evolved beyond what this skill describes, **trust the s
 
 | Raw report section                          | Metadata field(s) |
 | ------------------------------------------- | ----------------- |
-| Header table                                | `protocol`, `chain`, `auditDate`, `auditor`, `complexityTier`, `frameworkVersion` |
+| Header table                                | `protocol`, `chain`, `auditDate`, `complexityTier` |
 | Executive Summary table                     | `securityScore`, `securityGrade`, `riskLevel`, `dealBreakers` (rephrased), `dealBreakerGate`, `monitoringCadence` |
 | Executive Summary → Key Findings (numbered) | `keyFindings[]` (headline form) |
 | Executive Summary → Recommendation          | `findingsSummary` (rewritten descriptively) |

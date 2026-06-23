@@ -17,7 +17,7 @@ export async function getStaticPaths() {
 
 const { report } = Astro.props;
 const {
-  protocol, chain, riskLevel, securityGrade, auditDate, auditor,
+  protocol, chain, riskLevel, securityGrade, auditDate,
   protocolSlug, body, dealBreakerGate, protocolMeta,
 } = report.data;
 
@@ -38,7 +38,7 @@ const age = relativeAge(auditDate);
   <meta data-pagefind-meta="type:report" />
   <meta data-pagefind-meta={`protocol:${protocol}`} />
   <meta data-pagefind-meta={`chain:${chain}`} />
-  <JsonLd type="report" data={{ protocol, chain, auditDate, auditor }} />
+  <JsonLd type="report" data={{ protocol, chain, auditDate }} />
   <a href={`/protocols/${protocolSlug}`} class="text-sm text-blue-400 hover:underline mb-4 inline-flex items-center gap-1">
     <span aria-hidden="true">←</span>
     <span>Back to {protocol} dashboard</span>
@@ -54,8 +54,6 @@ const age = relativeAge(auditDate);
     <h1 class="text-3xl sm:text-4xl font-bold mb-2">{protocol}</h1>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-400">
       <span>Audited {auditDate}{age && <span class="text-slate-500"> · {age}</span>}</span>
-      <span aria-hidden="true">·</span>
-      <span>{auditor}</span>
       <span aria-hidden="true">·</span>
       <GateBadge gate={dealBreakerGate} prefix size="sm" />
     </div>

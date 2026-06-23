@@ -44,7 +44,6 @@ const reports = defineCollection({
     protocolSlug: z.string(),
     chain: z.string(),
     auditDate: z.string(),
-    auditor: z.string(),
     securityScore: z.number(),
     securityGrade: z.string(),
     riskLevel: z.string(),
@@ -78,7 +77,6 @@ const reports = defineCollection({
     dealBreakerGate: z.enum(['Pass', 'Conditional', 'Watchlist', 'Fail', 'Inconclusive']).default('Inconclusive'),
     monitoringCadence: z.enum(['Daily', 'Weekly', 'Monthly', 'Quarterly', 'N/A']).default('N/A'),
     complexityTier: z.string().default(''),
-    frameworkVersion: z.string().default(''),
 
     openIssues: z.array(z.object({
       issue: z.string(),
