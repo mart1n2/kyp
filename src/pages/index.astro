@@ -21,7 +21,9 @@ for (const report of reports) {
 }
 
 const protocols = Array.from(protocolMap.values()).sort((a, b) => {
-  return a.data.protocol.localeCompare(b.data.protocol);
+  const ta = parseAuditDate(a.data.auditDate)?.getTime() ?? 0;
+  const tb = parseAuditDate(b.data.auditDate)?.getTime() ?? 0;
+  return tb - ta || a.data.protocol.localeCompare(b.data.protocol);
 });
 
 // Header KPIs
@@ -94,11 +96,11 @@ const cards = protocols.map(report => {
             id="sort-select"
             class="bg-slate-900/60 border border-slate-700 rounded-md text-xs text-slate-300 px-2 py-1.5 focus:outline-none focus:border-blue-500"
           >
-            <option value="name">Name A–Z</option>
-            <option value="score-asc">Lowest score first</option>
-            <option value="score-desc">Highest score first</option>
             <option value="audit-desc">Newest audit</option>
             <option value="audit-asc">Oldest audit</option>
+            <option value="score-desc">Highest score first</option>
+            <option value="score-asc">Lowest score first</option>
+            <option value="name">Name A–Z</option>
           </select>
         </label>
       </div>
@@ -203,13 +205,13 @@ const cards = protocols.map(report => {
     };
 
     const applySort = (updateUrl = true) => {
-      const sorter = SORTS[select.value] ?? SORTS.name;
+      const sorter = SORTS[select.value] ?? SORTS['audit-desc'];
       const cards = Array.from(grid.querySelectorAll<HTMLElement>('a[data-protocol-card]'));
       cards.sort(sorter);
       grid.append(...cards);
       if (updateUrl) {
         const params = new URLSearchParams(location.search);
-        if (select.value === 'name') params.delete('sort');
+        if (select.value === 'audit-desc') params.delete('sort');
         else params.set('sort', select.value);
         const qs = params.toString();
         history.replaceState(null, '', qs ? `${location.pathname}?${qs}` : location.pathname);
