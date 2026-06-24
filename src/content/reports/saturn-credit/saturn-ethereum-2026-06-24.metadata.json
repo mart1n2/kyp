@@ -1,0 +1,251 @@
+{
+  "slug": "saturn-ethereum-2026-06-24",
+  "protocol": "Saturn Credit",
+  "protocolSlug": "saturn-credit",
+  "chain": "Ethereum",
+  "auditDate": "06/24/2026",
+  "complexityTier": "Moderate",
+
+  "securityScore": 68.4,
+  "securityGrade": "B",
+  "riskLevel": "Medium",
+  "dealBreakers": "0 Failed — Gate cleared",
+
+  "dealBreakerGate": "Conditional",
+  "monitoringCadence": "Weekly",
+
+  "findingsSummary": "This is the full scored assessment that the April run never produced — that pass halted at the deal-breaker gate. The three April access-control deal breakers are now resolved by a 5-day TimelockController migration (verified on-chain), and the implementations are byte-identical to April, so no code re-audit was triggered. Saturn is well-engineered — modern OpenZeppelin v5.x, comprehensive reentrancy protection, ERC4626 inflation defense, internal-accounting NAV, and three prior audits — with no Critical/High code vulnerability and no unprivileged drainable path. The score lands at the B band (68.4, a B+ at the bottom of the band) because of structural trust concentration rather than code defects: 92.5% of the $88.6M vault NAV is off-chain STRC credited by a non-timelocked single-key processor that can move the liquid balance within a ±20% tolerance, the 5-day timelock's sole proposer/canceller is still a single EOA, a slow 24h-heartbeat single oracle prices the off-chain NAV, and there is no bug bounty. The team is publicly doxxed.",
+
+  "keyFindings": [
+    "April's 3 access-control deal breakers resolved — upgrade authority now behind a 5-day TimelockController",
+    "92.5% of the $88.6M vault NAV is off-chain STRC credited by the processor — not provable on-chain",
+    "Non-timelocked single-key processor can move the liquid USDat balance within a ±20% tolerance, uncapped",
+    "The 5-day timelock's sole proposer/canceller is still a single EOA — delay without decentralization",
+    "Slow single oracle (24h-heartbeat Chainlink STRC feed) prices 92.5% of NAV; no fallback",
+    "No bug bounty / security contact; team is publicly doxxed (Kevin Li, Ellis Osborn, Seb)"
+  ],
+
+  "dealBreakerSummary": { "pass": 17, "fail": 0, "na": 5, "inconclusive": 1 },
+
+  "dealBreakerDetails": [
+    { "item": "EOA Upgrade Control",            "status": "PASS", "category": "Access Control & Governance", "evidence": "Was FAIL in April. Upgrade authority on all 4 core contracts now terminates at a 5-day TimelockController (0xfD57…8A67, minDelay 432000s). UUPS _authorizeUpgrade = onlyRole(DEFAULT_ADMIN_ROLE) = timelock; USDat ProxyAdmin owner = timelock. Old EOA fully revoked." },
+    { "item": "EOA Fund Control",               "status": "PASS", "category": "Access Control & Governance", "evidence": "Was FAIL in April. No single EOA can upgrade-to-drain; the upgrade path is 5-day-timelock-gated. The processor's convertFromUsdat is the intended conversion mechanism within ±20% tolerance with an off-chain backing obligation — scored as a Fund Control / economic weakness (§2.2, F-2), not an unrestricted EOA withdrawal." },
+    { "item": ">60% Governance Centralization", "status": "N/A",  "category": "Access Control & Governance", "evidence": "No governance token." },
+    { "item": "Governance Mechanism Bypass",    "status": "N/A",  "category": "Access Control & Governance", "evidence": "No on-chain voting." },
+    { "item": "Timelock Backdoors",             "status": "PASS", "category": "Access Control & Governance", "evidence": "Was FAIL in April. Timelock executor = address(0) (open), admin = self; no fastTrack/emergencyExecute. 5d ≫ 48h mainnet minimum. Mint/Redeem under a separate 72h timelock. updateOracle now timelock-gated." },
+    { "item": "No Emergency Controls",          "status": "PASS", "category": "Access Control & Governance", "evidence": "Pause via COMPLIANCE_ROLE; unpause via DEFAULT_ADMIN_ROLE (timelock)." },
+
+    { "item": "Direct Pool Price Oracle",       "status": "PASS", "category": "Oracle & Price Integrity",     "evidence": "Chainlink STRC feed wrapped with staleness + bounds; not a DEX spot price." },
+    { "item": "Manual Price Control",           "status": "PASS", "category": "Oracle & Price Integrity",     "evidence": "No direct price setter; updateOracle / setPriceBounds are now 5-day-timelock-gated." },
+
+    { "item": "Known Compiler Bugs",            "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "Solidity 0.8.20 / 0.8.26, no applicable CVE." },
+    { "item": "No Reentrancy Protection",       "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "OZ ReentrancyGuard + CEI; SwapFacility transient-storage lock." },
+    { "item": "Unlimited Minting",              "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "USDat mints only by wrapping M 1:1 (onlySwapFacility)." },
+    { "item": "Unsafe Delegatecall / Call",     "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "No delegatecall or unvalidated .call{} in Saturn contracts." },
+    { "item": "Uninitialized Implementation",   "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "All implementations call _disableInitializers()." },
+    { "item": "Unprotected Initializer",        "status": "PASS", "category": "Smart Contract Architecture",  "evidence": "initializer-gated; already initialized on-chain." },
+
+    { "item": "No Audit + High TVL",            "status": "PASS",         "category": "Audit & Verification", "evidence": "3 audits (Three Sigma + 2× Certora); TVL ~$88.6M, audited." },
+    { "item": "Unverified Contracts",           "status": "PASS",         "category": "Audit & Verification", "evidence": "10/10 in-scope contracts verified on Etherscan (100%)." },
+    { "item": "Critical Unfixed Issues",        "status": "Inconclusive", "category": "Audit & Verification", "evidence": "Audit PDFs not re-read this pass (per process)." },
+
+    { "item": "Zero Flash Loan Protection",     "status": "PASS", "category": "Economic & Liquidity",         "evidence": "Was Inconclusive in April. Internal-accounting NAV + async withdrawal + vesting break same-block manipulation." },
+    { "item": "Broken Tokenomics",              "status": "PASS", "category": "Economic & Liquidity",         "evidence": "Was Inconclusive in April. ~11% real yield from off-chain STRC, well below 100%; not emission-driven." },
+    { "item": "No Slippage Protection",         "status": "PASS", "category": "Economic & Liquidity",         "evidence": "depositWithMinShares, mintWithMaxAssets, requestRedeem(minUsdatReceived)." },
+
+    { "item": "Centralized Bridge",             "status": "N/A", "category": "Cross-Chain & Bridges",          "evidence": "Single chain (Ethereum only)." },
+    { "item": "No Transfer Limits",             "status": "N/A", "category": "Cross-Chain & Bridges",          "evidence": "Not a bridge." },
+    { "item": "No Token Verification",          "status": "N/A", "category": "Cross-Chain & Bridges",          "evidence": "Not a bridge." }
+  ],
+
+  "adminControlMatrix": [
+    {
+      "surface": "USDat / sUSDat / Withdraw / StrcPriceOracle — Upgrade & DEFAULT_ADMIN",
+      "controller": "0xfD5782E3BFF366601da3973aE30C583dE4F08A67",
+      "controllerType": "Timelock",
+      "delayHours": 120,
+      "worstCase": "Upgrade any core contract or change the oracle/params — but only after a public 5-day delay (the canonical exit window)"
+    },
+    {
+      "surface": "TimelockController — PROPOSER & CANCELLER",
+      "controller": "0x610182581C93687Ca03F4a8E7f124f8cEC616820",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Sole proposer and canceller: can queue a 5-day-delayed malicious upgrade, indefinitely cancel remediation, or freeze admin if the key is lost"
+    },
+    {
+      "surface": "sUSDat — PROCESSOR_ROLE (convertFromUsdat)",
+      "controller": "Processor key (single EOA, non-timelocked)",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Move the liquid USDat balance via convertFromUsdat within a ±20% tolerance, uncapped and repeatable; off-chain STRC backing (92.5% of NAV) is not on-chain-provable"
+    },
+    {
+      "surface": "USDat — COMPLIANCE_ROLE",
+      "controller": "Compliance key (hot key)",
+      "controllerType": "EOA",
+      "delayHours": 0,
+      "worstCase": "Freeze accounts, arbitrary-recipient forceTransfer, manage the whitelist, and both pause and unpause USDat"
+    },
+    {
+      "surface": "Mint/Redeem (SwapFacility) — Proxy upgrade",
+      "controller": "0x23CA665c8a73292Fc7AC2cC4493d2cE883BBA468",
+      "controllerType": "Timelock",
+      "delayHours": 72,
+      "worstCase": "Mint/Redeem upgrade — 72h public delay before exposure"
+    },
+    {
+      "surface": "Chainlink STRC Feed — Owner",
+      "controller": "0x21f73D42Eb58Ba49dDB685dc29D3bF5c0f0373CA",
+      "controllerType": "Multisig",
+      "multisigConfig": "4/9",
+      "delayHours": 0,
+      "worstCase": "Replace the underlying Chainlink STRC price-feed implementation"
+    }
+  ],
+
+  "openIssues": [
+    {
+      "issue": "Timelock's sole PROPOSER + CANCELLER is a single EOA (F-1)",
+      "category": "Access Control",
+      "severity": "Medium",
+      "impact": "Delay without decentralization: key loss freezes admin (incl. unpause); key compromise can propose a malicious upgrade (5-day window) or indefinitely cancel remediation",
+      "recommendation": "Move PROPOSER/CANCELLER to a ≥3/5 multisig with an independent canceller",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "Non-timelocked single-key processor can move the liquid USDat balance via convertFromUsdat (F-2)",
+      "category": "Access Control",
+      "severity": "Medium",
+      "impact": "The processor can move the entire liquid USDat balance within a ±20% tolerance, uncapped and repeatable; off-chain STRC backing (92.5% of NAV) is not on-chain-provable",
+      "recommendation": "Add on-chain caps/rate limits to convertFromUsdat; reduce reliance on off-chain-credited STRC backing",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "±20% toleranceBps compounds to a ~33% value-leak ceiling per processor conversion (F-7)",
+      "category": "Economic",
+      "severity": "Medium",
+      "impact": "toleranceBps bounds strcAmount and purchasePrice independently, compounding to roughly a 33% value-leak ceiling per conversion by the trusted processor",
+      "recommendation": "Narrow toleranceBps to ≤5%",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "No public bug bounty program or security contact",
+      "category": "Operations",
+      "severity": "Medium",
+      "impact": "No incentive or channel for responsible vulnerability disclosure (counted as a red flag in the assessment)",
+      "recommendation": "Establish an Immunefi program with a $100K+ max bounty and a public security contact",
+      "priority": "P1",
+      "timeline": "1 month"
+    },
+    {
+      "issue": "Withdrawal settlement allows a ≤20% haircut vs previewRedeem; minUsdatReceived can be 0 (F-8)",
+      "category": "Economic",
+      "severity": "Medium",
+      "impact": "A per-request minUsdatReceived of 0 still validates, allowing settlement up to 20% below previewRedeem",
+      "recommendation": "Enforce a minimum minUsdatReceived; bound the settlement haircut vs previewRedeem",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "USDat COMPLIANCE hot key holds freeze + forceTransfer + whitelist + pause and unpause (F-3)",
+      "category": "Access Control",
+      "severity": "Low",
+      "impact": "Broader than the sUSDat/Queue compliance roles: a single key can freeze, force-transfer to an arbitrary recipient, manage the whitelist, and both pause and unpause",
+      "recommendation": "Split the compliance hot key's powers; separate pause from unpause; constrain forceTransfer",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "Unbounded user-iterated loops (_claimAllFor over balanceOf) (F-4)",
+      "category": "Smart Contract",
+      "severity": "Low",
+      "impact": "Gas-griefing / self-DoS; funds remain escapable via per-NFT claim",
+      "recommendation": "Bound the user-iterated loops or document per-NFT claim as the escape hatch",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "Oracle has no fallback; a stale/out-of-bounds feed reverts all sUSDat accounting (F-5)",
+      "category": "Oracle",
+      "severity": "Low",
+      "impact": "A feed failure reverts deposit/preview/requestRedeem — a liveness DoS (fails closed)",
+      "recommendation": "Add an oracle fallback / circuit breaker so a feed failure does not DoS vault accounting",
+      "priority": "P2",
+      "timeline": "3 months"
+    },
+    {
+      "issue": "getPrice omits answeredInRound / round-completeness; loose staleness and static bounds (F-6)",
+      "category": "Oracle",
+      "severity": "Low",
+      "impact": "36h staleness ceiling vs a 24h heartbeat, static $20–$150 bounds (~±50%), and no deviation breaker",
+      "recommendation": "Add answeredInRound/round-completeness checks; tighten staleness to the 24h heartbeat; add a deviation breaker",
+      "priority": "P2",
+      "timeline": "3 months"
+    }
+  ],
+
+  "auditHistory": [
+    {
+      "date": "Unknown",
+      "firm": "Three Sigma",
+      "tier": 2,
+      "scope": "Audit #1 — full scope undisclosed",
+      "reportUrl": "https://3131394583-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FaoxN2WzhSM74tsJUct0C%2Fuploads%2FPKsYColQZJy0e2AlTX7K%2FThree%20Sigma%20-%20Audit%20%231.pdf?alt=media&token=27dc0f4e-6882-4188-b46b-6f0b65f8ef9c"
+    },
+    {
+      "date": "Unknown",
+      "firm": "Certora",
+      "tier": 1,
+      "scope": "Audit #2 — full scope undisclosed",
+      "reportUrl": "https://3131394583-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FaoxN2WzhSM74tsJUct0C%2Fuploads%2FKNrnqGyTv1VPM2rbBIp0%2FCertora%20-%20Audit%20%232.pdf?alt=media&token=1249bd80-ea7f-4447-a7f3-ba2b5e21fd9d"
+    },
+    {
+      "date": "Unknown",
+      "firm": "Certora",
+      "tier": 1,
+      "scope": "Audit #3 — full scope undisclosed",
+      "reportUrl": "https://3131394583-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FaoxN2WzhSM74tsJUct0C%2Fuploads%2FcHvWwaDplLvCFpOvoqaO%2FCerotra%20-%20Audit%20%233.pdf?alt=media&token=45d8b677-5c0b-4481-b77d-dc98e9509545"
+    }
+  ],
+
+  "accessControlRoles": [
+    { "contract": "USDat",            "role": "DEFAULT_ADMIN_ROLE",         "holder": "Timelock 0xfD57…8A67",        "powers": "Grant/revoke roles, full admin — behind 5-day delay" },
+    { "contract": "USDat",            "role": "COMPLIANCE_ROLE",            "holder": "Compliance key",              "powers": "Freeze, arbitrary-recipient forceTransfer, whitelist, pause + unpause" },
+    { "contract": "sUSDat",           "role": "DEFAULT_ADMIN_ROLE",         "holder": "Timelock 0xfD57…8A67",        "powers": "UUPS upgrade, vesting, fees, tolerance, params — behind 5-day delay" },
+    { "contract": "sUSDat",           "role": "PROCESSOR_ROLE",             "holder": "Processor key (single EOA)",  "powers": "convertFromUsdat (±20% tolerance), distribute rewards, settle withdrawals" },
+    { "contract": "Withdraw",         "role": "DEFAULT_ADMIN_ROLE",         "holder": "Timelock 0xfD57…8A67",        "powers": "UUPS upgrade, unpause — behind 5-day delay" },
+    { "contract": "StrcPriceOracle",  "role": "DEFAULT_ADMIN_ROLE",         "holder": "Timelock 0xfD57…8A67",        "powers": "updateOracle, set staleness, set price bounds — behind 5-day delay" },
+    { "contract": "TimelockController","role": "PROPOSER_ROLE / CANCELLER_ROLE", "holder": "0x6101…6820 (single EOA)", "powers": "Queue (5-day-delayed) or cancel privileged operations" },
+    { "contract": "TimelockController","role": "EXECUTOR_ROLE",             "holder": "address(0) (open)",           "powers": "Anyone may execute an operation after the 5-day delay" }
+  ],
+
+  "contracts": [
+    { "name": "USDat (Proxy)",         "address": "0x23238f20b894f29041f48D88eE91131C395Aaa71", "verified": true, "type": "TransparentUpgradeableProxy", "compiler": "0.8.26" },
+    { "name": "USDat (Impl)",          "address": "0x17cac25c6d6bbcb592837fea083a5c8eb4d1e52e", "verified": true, "type": "Implementation",            "compiler": "0.8.26" },
+    { "name": "sUSDat (Proxy)",        "address": "0xD166337499E176bbC38a1FBd113Ab144e5bd2Df7", "verified": true, "type": "ERC1967Proxy (UUPS)",        "compiler": "0.8.20" },
+    { "name": "sUSDat (Impl)",         "address": "0x2005e0ca201a37694125ff267ae57872bea0a0ce", "verified": true, "type": "Implementation",            "compiler": "0.8.20" },
+    { "name": "Mint/Redeem (Proxy)",   "address": "0xB6807116b3B1B321a390594e31ECD6e0076f6278", "verified": true, "type": "TransparentUpgradeableProxy", "compiler": "0.8.26" },
+    { "name": "Mint/Redeem (Impl)",    "address": "0x45bf08d042a8958f01f8e8319b791e4584550da8", "verified": true, "type": "Implementation",            "compiler": "0.8.26" },
+    { "name": "Withdraw (Proxy)",      "address": "0x4Bc9FEC04F0F95e9b42a3EF18F3C96fB57923D2e", "verified": true, "type": "ERC1967Proxy (UUPS)",        "compiler": "0.8.20" },
+    { "name": "Withdraw (Impl)",       "address": "0x256fa0ba1b6dfb50ee883955c5a99d3c1b017fd5", "verified": true, "type": "Implementation",            "compiler": "0.8.20" },
+    { "name": "StrcPriceOracle",       "address": "0x5f7eCD0D045c393da6cb6c933c671AC305A871BF", "verified": true, "type": "Immutable",                  "compiler": "0.8.20" },
+    { "name": "Chainlink STRC Feed",   "address": "0xf4d2076277fff631EFC4385Ab36b1f7734218d23", "verified": true, "type": "EACAggregatorProxy",         "compiler": "0.6.6"  }
+  ],
+
+  "protocolMeta": {
+    "website": "https://saturn.credit/",
+    "docs": "https://saturncredit.gitbook.io/saturn-docs",
+    "github": "",
+    "type": "Stablecoin",
+    "subtype": "Managed Single-Asset (yield via off-chain STRC credit exposure)",
+    "tvlUsd": 88600000,
+    "tvlSource": "On-chain vault NAV ≈ $88.6M (USDat supply ≈ $116M); not listed on DeFiLlama",
+    "launchDate": ""
+  },
+
+  "bugBounty": null
+}
