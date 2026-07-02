@@ -11,7 +11,6 @@
   "dealBreakers": "0 Failed — Gate cleared",
 
   "dealBreakerGate": "Conditional",
-  "monitoringCadence": "Weekly",
 
   "findingsSummary": "MUSD is a faithful Liquity-v2-style BTC-CDP stablecoin with sound core mechanics — verified checks-effects-interactions on every native-BTC payout, symmetric interest accounting, and mint/burn authority correctly scoped to the canonical system contracts. The B grade reflects three governance and operational gaps rather than code defects: an untimelocked 5-of-9 Gnosis Safe holding full upgrade and mint-list authority, a single chain-native BTC/USD oracle with no fallback and no value-sanity bounds on the read path, and deployed bytecode that post-dates the only public audit and is unverified on the Mezo explorer. The deal-breaker gate clears with no failures.",
 

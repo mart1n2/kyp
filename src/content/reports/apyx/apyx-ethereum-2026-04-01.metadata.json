@@ -11,7 +11,6 @@
   "dealBreakers": "0 Failed — Gate cleared",
 
   "dealBreakerGate": "Pass",
-  "monitoringCadence": "Weekly",
 
   "findingsSummary": "All deal breakers pass. Material residual risks are an admin-controlled vesting-substitution path (setVesting) with no output-bounds validation or timelock, an ADMIN role with zero execution delay at $75M+ TVL, and entirely off-chain backing of apxUSD with no on-chain proof-of-reserve. These are counterbalanced by strong smart-contract architecture (OZ AccessManager, OZ ERC4626 with built-in inflation protection), three top-tier audits, a 30-day withdrawal cooldown that structurally blocks flash-loan extraction, and a doxxed ex-Kraken team.",
 

@@ -11,7 +11,7 @@ Each protocol on KYP has a **dashboard** at `/protocols/<slug>` and a **long-for
 
 ## The hero strip — 30-second scan
 
-Four KPI tiles sit at the top: **Deal Breaker Gate**, **Score**, **Risk Level**, **Re-check Cadence**. The gate is the first signal:
+Three KPI tiles sit at the top: **Deal Breaker Gate**, **Score**, **Risk Level**. The gate is the first signal:
 
 - `PASS` — no deal-breaker conditions triggered
 - `CONDITIONAL` — passed with material caveats

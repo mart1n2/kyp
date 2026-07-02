@@ -11,7 +11,6 @@
   "dealBreakers": "0 Failed — Gate cleared",
 
   "dealBreakerGate": "Conditional",
-  "monitoringCadence": "Weekly",
 
   "findingsSummary": "The MUSD savings strategy (sMUSD vault + IdleStrategy + VaultGauge) is sound at the code layer — all three contracts are verified, double-audited with 100% of findings addressed, Slither-clean, and run par 1:1 mechanics with instant fee-free exit; the par invariant holds exactly on-chain (strategy MUSD = sMUSD supply ≈ $6.7M). The grade is held below A− by a governance concentration rather than a code defect: the upgradeable vault and its setStrategy() migration are controlled by a no-timelock 5/9 Mezo-team Safe that can move 100% of principal instantly. Staking routes ~99% of supply through the Velodrome ve/Voter system, which review confirmed touches rewards and emissions only — never staked principal. The deal-breaker gate clears with no failures.",
 

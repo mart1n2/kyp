@@ -75,11 +75,7 @@ describe('metadata JSON validation', () => {
           // Public site must not surface position-sizing guidance.
           expect(metadata).not.toHaveProperty('maxPositionSizePct');
           expect(metadata).not.toHaveProperty('investmentDecision');
-        });
-      }
-      if (metadata.monitoringCadence !== undefined) {
-        it(`${reportName} monitoringCadence is valid`, () => {
-          expect(['Daily', 'Weekly', 'Monthly', 'Quarterly', 'N/A']).toContain(metadata.monitoringCadence);
+          expect(metadata).not.toHaveProperty('monitoringCadence');
         });
       }
 

@@ -1,6 +1,7 @@
 ---
-import { relativeAge, compactNumber } from '../utils/format';
+import { compactNumber, toIsoDate } from '../utils/format';
 import { riskTextClass, scoreTextClass } from '../utils/badges';
+import RelativeAge from './RelativeAge.astro';
 
 interface Props {
   protocol: string;
@@ -14,7 +15,6 @@ interface Props {
   riskLevel: string;
   securityScore: number;
   securityGrade: string;
-  monitoringCadence: string;
   complexityTier?: string;
 
   failedDealBreakers: number;
@@ -32,7 +32,7 @@ interface Props {
 
 const {
   protocol, chain, auditDate, type, subtype, tvlUsd,
-  dealBreakerGate, riskLevel, securityScore, securityGrade, monitoringCadence,
+  dealBreakerGate, riskLevel, securityScore, securityGrade,
   complexityTier,
   failedDealBreakers, totalDealBreakers,
   openIssuesP0, openIssuesTotal,
@@ -50,7 +50,7 @@ const gateStyle: Record<string, { ring: string; text: string; label: string; sub
 };
 const gate = gateStyle[dealBreakerGate] ?? gateStyle.Inconclusive;
 
-const age = relativeAge(auditDate);
+const hasAge = toIsoDate(auditDate) !== null;
 const tvlDisplay = tvlUsd != null ? `$${compactNumber(tvlUsd)}` : null;
 
 const typeLine = [type, subtype ? `(${subtype})` : ''].filter(Boolean).join(' ');
@@ -64,12 +64,12 @@ const typeLine = [type, subtype ? `(${subtype})` : ''].filter(Boolean).join(' ')
   </div>
   <h1 class="text-3xl sm:text-4xl font-bold mb-2">{protocol}</h1>
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-400">
-    <span>Audited {auditDate}{age && <span class="text-slate-500"> · {age}</span>}</span>
+    <span>Audited {auditDate}{hasAge && <span class="text-slate-500"> · <RelativeAge date={auditDate} /></span>}</span>
     {complexityTier && (<><span aria-hidden="true">·</span><span>Tier: {complexityTier}</span></>)}
   </div>
 </header>
 
-<section class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+<section class="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
   <div class={`kyp-kpi ring-1 ${gate.ring}`}>
     <div class="kyp-label">Deal Breaker Gate</div>
     <div class={`text-2xl font-extrabold mt-1.5 tracking-tight ${gate.text}`}>{gate.label}</div>
@@ -87,11 +87,6 @@ const typeLine = [type, subtype ? `(${subtype})` : ''].filter(Boolean).join(' ')
     <div class="kyp-label">Risk Level</div>
     <div class={`text-2xl font-extrabold mt-1.5 tracking-tight ${riskTextClass(riskLevel)}`}>{riskLevel}</div>
     <div class="text-xs text-slate-400 mt-1">Aggregate finding</div>
-  </div>
-  <div class="kyp-kpi">
-    <div class="kyp-label">Re-check Cadence</div>
-    <div class="text-2xl font-extrabold mt-1.5 tracking-tight text-slate-100">{monitoringCadence}</div>
-    <div class="text-xs text-slate-400 mt-1">Suggested for next assessment</div>
   </div>
 </section>
 

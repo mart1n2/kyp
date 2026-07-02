@@ -11,7 +11,6 @@
   "dealBreakers": "3 Failed — Gate not cleared",
 
   "dealBreakerGate": "Fail",
-  "monitoringCadence": "N/A",
 
   "findingsSummary": "Three of four core upgradeable contracts can be unilaterally upgraded by a single EOA with no timelock, multisig, or governance oversight. The sUSDat vault, which holds all deposited user funds, is directly exposed; a compromised key would enable instant fund drainage. The deal-breaker gate fails on EOA upgrade control, EOA fund control, and timelock backdoors.",
 

@@ -29,7 +29,7 @@ const { report, protocolSlug } = Astro.props;
 const {
   protocol, chain, riskLevel, securityScore, securityGrade, auditDate,
   dealBreakerDetails, accessControlRoles, contracts, keyFindings, findingsSummary,
-  dealBreakerGate, monitoringCadence,
+  dealBreakerGate,
   complexityTier,
   openIssues, auditHistory, adminControlMatrix,
   protocolMeta, bugBounty, dealBreakerSummary,
@@ -102,7 +102,6 @@ const sections = [
     riskLevel={riskLevel}
     securityScore={securityScore}
     securityGrade={securityGrade}
-    monitoringCadence={monitoringCadence}
     complexityTier={complexityTier}
     failedDealBreakers={failedDealBreakers}
     totalDealBreakers={totalDealBreakers}

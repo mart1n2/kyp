@@ -75,7 +75,6 @@ const reports = defineCollection({
     findingsSummary: z.string().default(''),
 
     dealBreakerGate: z.enum(['Pass', 'Conditional', 'Watchlist', 'Fail', 'Inconclusive']).default('Inconclusive'),
-    monitoringCadence: z.enum(['Daily', 'Weekly', 'Monthly', 'Quarterly', 'N/A']).default('N/A'),
     complexityTier: z.string().default(''),
 
     openIssues: z.array(z.object({

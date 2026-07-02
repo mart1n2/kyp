@@ -12,7 +12,6 @@
   "dealBreakers": "0 Failed — Gate cleared",
 
   "dealBreakerGate": "Conditional",
-  "monitoringCadence": "Weekly",
 
   "findingsSummary": "This is the full scored assessment that the April run never produced — that pass halted at the deal-breaker gate. The three April access-control deal breakers are now resolved by a 5-day TimelockController migration (verified on-chain), and the implementations are byte-identical to April, so no code re-audit was triggered. Saturn is well-engineered — modern OpenZeppelin v5.x, comprehensive reentrancy protection, ERC4626 inflation defense, internal-accounting NAV, and three prior audits — with no Critical/High code vulnerability and no unprivileged drainable path. The score lands at the B band (68.4, a B+ at the bottom of the band) because of structural trust concentration rather than code defects: 92.5% of the $88.6M vault NAV is off-chain STRC credited by a non-timelocked single-key processor that can move the liquid balance within a ±20% tolerance, the 5-day timelock's sole proposer/canceller is still a single EOA, a slow 24h-heartbeat single oracle prices the off-chain NAV, and there is no bug bounty. The team is publicly doxxed.",
 

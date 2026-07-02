@@ -11,7 +11,6 @@
   "dealBreakers": "2 Failed — Gate not cleared",
 
   "dealBreakerGate": "Fail",
-  "monitoringCadence": "N/A",
 
   "findingsSummary": "Two deal breakers triggered. The OPERATOR EOA can drain the entire vault balance (~$12M) via moveAssets() with no multisig, no timelock, and no per-call cap. The Oracle REPORTER EOA can set arbitrary share prices because the rate limiter (maxPpsMoveBps) is configured to 0 (disabled) and the ADMIN EOA can re-disable it at any time. All six privileged roles across NavVault and NavOracle are EOAs — no multisig, no DAO, no on-chain governance. The deal-breaker gate fails on EOA fund control and manual price control.",
 

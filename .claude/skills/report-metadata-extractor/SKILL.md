@@ -65,11 +65,11 @@ If the schema files have evolved beyond what this skill describes, **trust the s
 | Raw report section                          | Metadata field(s) |
 | ------------------------------------------- | ----------------- |
 | Header table                                | `protocol`, `chain`, `auditDate`, `complexityTier` |
-| Executive Summary table                     | `securityScore`, `securityGrade`, `riskLevel`, `dealBreakers` (rephrased), `dealBreakerGate`, `monitoringCadence` |
+| Executive Summary table                     | `securityScore`, `securityGrade`, `riskLevel`, `dealBreakers` (rephrased), `dealBreakerGate` |
 | Executive Summary → Key Findings (numbered) | `keyFindings[]` (headline form) |
 | Executive Summary → Recommendation          | `findingsSummary` (rewritten descriptively) |
 | §1 Deal Breaker Analysis (sub-tables)       | `dealBreakerDetails[]` with `category` per sub-section; `dealBreakerSummary` from §1 totals |
-| §4.3 Investment Decision                    | confirms `dealBreakerGate`, `monitoringCadence` |
+| §4.3 Investment Decision                    | confirms `dealBreakerGate`; monitoring cadence is **DROPPED — not on the public site** |
 | §5.1 Open Issues table                      | `openIssues[]` |
 | §6.1 Protocol Overview                      | `protocolMeta` |
 | §6.2 Smart Contract Addresses               | `contracts[]` |
@@ -92,13 +92,6 @@ If the schema files have evolved beyond what this skill describes, **trust the s
 | Pipeline halted, undecidable | `Inconclusive` |
 
 **Do not infer `Pass` when one or more deal breakers are FAIL** — that's `Fail`.
-
-### `monitoringCadence`
-
-| Framework value                       | `monitoringCadence` |
-| ------------------------------------- | ------------------- |
-| Daily / Weekly / Monthly / Quarterly  | same |
-| Avoid / N/A / not applicable          | `N/A` |
 
 ### `findingsSummary`
 
