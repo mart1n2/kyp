@@ -22,24 +22,24 @@ const researchCount = notes.filter(n => n.data.kind === 'research').length;
 
 <Layout title="Notes — Know Your Protocol" description="Security research, writeups, and meta posts on the KYP framework.">
   <section class="mb-8">
-    <div class="inline-flex items-center gap-2 mb-3 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-medium text-blue-300 uppercase tracking-wider">
-      <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"></span>
+    <div class="inline-flex items-center gap-2 mb-3 px-2.5 py-1 rounded-full bg-accent/10 border border-accent/20 text-[11px] font-medium text-accent-2 uppercase tracking-wider">
+      <span class="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(96,165,250,0.8)]"></span>
       {notes.length} {notes.length === 1 ? 'note' : 'notes'}
     </div>
-    <h1 class="text-4xl sm:text-5xl font-extrabold mb-3 tracking-tight bg-gradient-to-br from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">Notes</h1>
-    <p class="text-slate-400 max-w-2xl leading-relaxed">
+    <h1 class="text-4xl sm:text-5xl font-extrabold mb-3 tracking-tight bg-gradient-to-br from-ink via-ink to-ink-3 bg-clip-text text-transparent">Notes</h1>
+    <p class="text-ink-3 max-w-2xl leading-relaxed">
       Security research, writeups, and short essays. Some posts are tied to a specific protocol on this site; others are cross-cutting.
     </p>
   </section>
 
   {(incidentCount + researchCount) > 0 && (
     <div class="mb-3 flex flex-wrap items-center gap-2">
-      <span class="text-xs uppercase tracking-wider text-slate-500 mr-1">Type:</span>
+      <span class="text-xs uppercase tracking-wider text-ink-4 mr-1">Type:</span>
       <button
         type="button"
         data-kind-filter=""
         class="kind-filter is-active px-2.5 py-1 rounded border text-xs font-medium transition-colors"
-      >All <span class="text-slate-500">({notes.length})</span></button>
+      >All <span class="opacity-60">({notes.length})</span></button>
       {incidentCount > 0 && (
         <button
           type="button"
@@ -59,18 +59,18 @@ const researchCount = notes.filter(n => n.data.kind === 'research').length;
 
   {tags.length > 0 && (
     <div class="mb-6 flex flex-wrap items-center gap-2">
-      <span class="text-xs uppercase tracking-wider text-slate-500 mr-1">Tag:</span>
+      <span class="text-xs uppercase tracking-wider text-ink-4 mr-1">Tag:</span>
       <button
         type="button"
         data-tag-filter=""
-        class="tag-filter is-active px-2.5 py-1 rounded border text-xs font-medium transition-colors"
-      >All <span class="text-slate-500">({notes.length})</span></button>
+        class="kyp-tag tag-filter is-active transition-colors"
+      >All <span class="opacity-60">({notes.length})</span></button>
       {tags.map(([tag, count]) => (
         <button
           type="button"
           data-tag-filter={tag}
-          class="tag-filter px-2.5 py-1 rounded border text-xs font-medium transition-colors"
-        >{tag} <span class="text-slate-500">({count})</span></button>
+          class="kyp-tag tag-filter transition-colors"
+        >{tag} <span class="opacity-60">({count})</span></button>
       ))}
     </div>
   )}
@@ -94,29 +94,29 @@ const researchCount = notes.filter(n => n.data.kind === 'research').length;
             </div>
           )}
           <div class="flex items-start justify-between gap-4 mb-1">
-            <h2 class="text-lg font-semibold text-slate-100">{note.data.title}</h2>
+            <h2 class="text-lg font-semibold text-ink">{note.data.title}</h2>
             <div class="shrink-0 text-right text-xs font-mono">
-              <time datetime={isoDate(note.data.updated ?? note.data.date)} class="text-slate-500">
+              <time datetime={isoDate(note.data.updated ?? note.data.date)} class="text-ink-4">
                 {isoDate(note.data.updated ?? note.data.date)}
               </time>
               {note.data.updated && note.data.updated.getTime() !== note.data.date.getTime() && (
-                <div class="text-[10px] text-slate-500" title={`Originally published ${isoDate(note.data.date)}`}>
+                <div class="text-[10px] text-ink-4" title={`Originally published ${isoDate(note.data.date)}`}>
                   updated
                 </div>
               )}
             </div>
           </div>
           {note.data.description && (
-            <p class="text-sm text-slate-400 leading-relaxed mt-1">{note.data.description}</p>
+            <p class="text-sm text-ink-3 leading-relaxed mt-1">{note.data.description}</p>
           )}
           <div class="flex flex-wrap items-center gap-1.5 mt-3 text-xs">
             {note.data.tags.map(tag => (
-              <span class="px-2 py-0.5 rounded border bg-slate-900 text-slate-400 border-slate-700">{tag}</span>
+              <span class="kyp-tag">{tag}</span>
             ))}
             {note.data.relatedProtocol && (
-              <span class="ml-auto text-slate-500">↳ <span class="text-blue-400">{note.data.relatedProtocol}</span></span>
+              <span class="ml-auto text-ink-4">↳ <span class="text-accent">{note.data.relatedProtocol}</span></span>
             )}
-            <span class="text-slate-600">· <RelativeAge date={isoDate(note.data.updated ?? note.data.date)} /></span>
+            <span class="text-ink-4">· <RelativeAge date={isoDate(note.data.updated ?? note.data.date)} /></span>
           </div>
         </a>
       </li>
@@ -125,42 +125,44 @@ const researchCount = notes.filter(n => n.data.kind === 'research').length;
   </ul>
 
   {notes.length === 0 && (
-    <div class="p-8 bg-slate-800/40 border border-dashed border-slate-700 rounded-lg text-center">
-      <div class="text-slate-300 font-semibold mb-1">No notes yet</div>
-      <p class="text-sm text-slate-500">Markdown files in <code class="text-slate-400">src/content/notes/</code> will appear here.</p>
+    <div class="p-8 bg-inset/40 border border-dashed border-line-2 rounded-lg text-center">
+      <div class="text-ink-2 font-semibold mb-1">No notes yet</div>
+      <p class="text-sm text-ink-4">Markdown files in <code class="text-ink-3">src/content/notes/</code> will appear here.</p>
     </div>
   )}
 </Layout>
 
 <style>
-  .tag-filter, .kind-filter {
-    background: rgb(30 41 59 / 0.6);
-    color: rgb(203 213 225);
-    border-color: rgb(51 65 85);
+  /* Kind filters keep their own neutral chip look; tag filters are .kyp-tag
+   * chips (base + hover from global.css) with an accent-filled active state. */
+  .kind-filter {
+    background: rgb(var(--c-ink) / 0.05);
+    color: rgb(var(--c-ink-2));
+    border-color: var(--c-line-2);
   }
-  .tag-filter:hover, .kind-filter:hover {
-    background: rgb(30 41 59);
-    color: rgb(241 245 249);
+  .kind-filter:hover {
+    background: rgb(var(--c-ink) / 0.1);
+    color: rgb(var(--c-ink));
   }
   .tag-filter.is-active {
-    background: rgb(30 58 138 / 0.4);
-    color: rgb(191 219 254);
-    border-color: rgb(29 78 216);
+    background: rgb(var(--c-accent) / 0.25);
+    color: rgb(var(--c-accent-2));
+    border-color: rgb(var(--c-accent) / 0.5);
   }
   .kind-filter.kind-incident.is-active {
-    background: rgb(127 29 29 / 0.35);
-    color: rgb(254 202 202);
-    border-color: rgb(220 38 38 / 0.5);
+    background: rgb(var(--c-danger) / 0.15);
+    color: rgb(var(--c-danger));
+    border-color: rgb(var(--c-danger) / 0.5);
   }
   .kind-filter.kind-research.is-active {
-    background: rgb(120 53 15 / 0.35);
-    color: rgb(253 230 138);
-    border-color: rgb(245 158 11 / 0.5);
+    background: rgb(var(--c-warn) / 0.15);
+    color: rgb(var(--c-warn));
+    border-color: rgb(var(--c-warn) / 0.5);
   }
   .kind-filter.is-active:not(.kind-incident):not(.kind-research) {
-    background: rgb(30 58 138 / 0.4);
-    color: rgb(191 219 254);
-    border-color: rgb(29 78 216);
+    background: rgb(var(--c-accent) / 0.2);
+    color: rgb(var(--c-accent-2));
+    border-color: rgb(var(--c-accent) / 0.5);
   }
 </style>
 

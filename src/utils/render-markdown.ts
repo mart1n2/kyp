@@ -13,7 +13,10 @@ export async function renderMarkdown(content: string): Promise<RenderedMarkdown>
   if (!processor) {
     processor = await createMarkdownProcessor({
       shikiConfig: {
-        theme: 'github-dark',
+        // Both palettes are emitted as CSS variables; global.css activates
+        // one per [data-theme] so code blocks follow the site theme.
+        themes: { light: 'github-light', dark: 'github-dark' },
+        defaultColor: false,
       },
     });
   }

@@ -59,10 +59,10 @@ const groupedDB = dbCategories.length > 0
   : [{ category: 'All', items: dealBreakerDetails }];
 
 const dbStatusColor: Record<string, string> = {
-  PASS: 'bg-green-900/50 text-green-200 border-green-800',
-  FAIL: 'bg-red-900/50 text-red-200 border-red-800',
-  'N/A': 'bg-slate-800 text-slate-400 border-slate-700',
-  Inconclusive: 'bg-yellow-900/40 text-yellow-200 border-yellow-700',
+  PASS: 'bg-ok/10 text-ok border-ok/40',
+  FAIL: 'bg-danger/10 text-danger border-danger/40',
+  'N/A': 'bg-ink/5 text-ink-3 border-line-2',
+  Inconclusive: 'bg-warn/10 text-warn border-warn/40',
 };
 
 const sections = [
@@ -86,7 +86,7 @@ const sections = [
   <meta data-pagefind-meta={`gate:${dealBreakerGate}`} />
   <meta data-pagefind-meta={`risk:${riskLevel}`} />
   <JsonLd type="protocol" data={{ protocol, chain }} />
-  <a href="/" class="text-sm text-blue-400 hover:underline mb-4 inline-flex items-center gap-1">
+  <a href="/" class="text-sm text-accent hover:underline mb-4 inline-flex items-center gap-1">
     <span aria-hidden="true">←</span>
     <span>All protocols</span>
   </a>
@@ -118,12 +118,12 @@ const sections = [
   {sections.length > 1 && <PageNav sections={sections} />}
 
   {hasEoaControl && (
-    <aside class="mb-6 p-4 bg-red-950/40 border border-red-800/70 rounded-lg" role="alert">
+    <aside class="mb-6 p-4 bg-danger/10 border border-danger/40 rounded-lg" role="alert">
       <div class="flex items-start gap-3">
-        <span class="inline-flex w-6 h-6 shrink-0 items-center justify-center rounded-full bg-red-900/60 ring-1 ring-red-700 text-red-200 text-sm font-bold mt-0.5" aria-hidden="true">!</span>
+        <span class="inline-flex w-6 h-6 shrink-0 items-center justify-center rounded-full bg-danger/15 ring-1 ring-danger/40 text-danger text-sm font-bold mt-0.5" aria-hidden="true">!</span>
         <div>
-          <h3 class="font-semibold text-red-200">EOA Control Detected</h3>
-          <p class="text-sm text-red-200/90 mt-1">
+          <h3 class="font-semibold text-danger">EOA Control Detected</h3>
+          <p class="text-sm text-danger/90 mt-1">
             Single externally-owned account controls{' '}
             <span class="font-mono">{eoaSurfaceLabels.length > 0 ? eoaSurfaceLabels.join(', ') : 'core surfaces'}</span>.
             A compromised key would enable instant fund loss with no on-chain delay.
@@ -157,12 +157,12 @@ const sections = [
           {groupedDB.map(group => (
             <div>
               {group.category !== 'All' && (
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">{group.category}</h3>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-ink-4 mb-2">{group.category}</h3>
               )}
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                   <thead>
-                    <tr class="border-b border-slate-700 text-slate-400 text-left">
+                    <tr class="border-b border-line-2 text-ink-3 text-left">
                       <th class="pb-2 pr-4 font-semibold">Item</th>
                       <th class="pb-2 pr-4 font-semibold">Status</th>
                       <th class="pb-2 font-semibold">Evidence</th>
@@ -170,14 +170,14 @@ const sections = [
                   </thead>
                   <tbody>
                     {group.items.map(d => (
-                      <tr class="border-b border-slate-700/40 align-top">
+                      <tr class="border-b border-line align-top">
                         <td class="py-2 pr-4 font-medium">{d.item}</td>
                         <td class="py-2 pr-4 whitespace-nowrap">
                           <span class={`px-2 py-0.5 rounded border text-xs font-semibold ${dbStatusColor[d.status] ?? dbStatusColor['N/A']}`}>
                             {d.status}
                           </span>
                         </td>
-                        <td class="py-2 text-slate-400">{d.evidence}</td>
+                        <td class="py-2 text-ink-3">{d.evidence}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -207,28 +207,28 @@ const sections = [
         <div class="space-y-3">
           {auditHistory.map(a => {
             const tierLabel = a.tier === 1 ? 'Tier 1' : a.tier === 2 ? 'Tier 2' : 'Tier 3';
-            const tierColor = a.tier === 1 ? 'bg-green-900/50 text-green-200 border-green-800'
-                           : a.tier === 2 ? 'bg-blue-900/50 text-blue-200 border-blue-800'
-                           : 'bg-slate-800 text-slate-300 border-slate-700';
+            const tierColor = a.tier === 1 ? 'bg-ok/10 text-ok border-ok/30'
+                           : a.tier === 2 ? 'bg-info/10 text-info border-info/30'
+                           : 'bg-ink/5 text-ink-2 border-line-2';
             const f = a.findings;
             return (
               <article class="kyp-inset p-4">
                 <div class="flex flex-wrap items-center gap-2">
                   <span class={`px-2 py-0.5 rounded border text-xs font-semibold ${tierColor}`}>{tierLabel}</span>
                   <span class="font-semibold">{a.firm}</span>
-                  <span class="text-slate-500 text-sm" aria-hidden="true">·</span>
-                  <span class="text-sm text-slate-400">{a.date}</span>
-                  {a.scope && (<><span class="text-slate-500 text-sm" aria-hidden="true">·</span><span class="text-sm text-slate-400">{a.scope}</span></>)}
+                  <span class="text-ink-4 text-sm" aria-hidden="true">·</span>
+                  <span class="text-sm text-ink-3">{a.date}</span>
+                  {a.scope && (<><span class="text-ink-4 text-sm" aria-hidden="true">·</span><span class="text-sm text-ink-3">{a.scope}</span></>)}
                   {a.reportUrl && (
-                    <a href={a.reportUrl} target="_blank" rel="noopener noreferrer" class="ml-auto text-xs text-blue-400 hover:text-blue-300">Report ↗</a>
+                    <a href={a.reportUrl} target="_blank" rel="noopener noreferrer" class="ml-auto text-xs text-accent hover:text-accent-2">Report ↗</a>
                   )}
                 </div>
                 {f && (f.critical + f.high + f.medium + f.low > 0) && (
                   <div class="mt-2 flex gap-3 text-xs">
-                    {f.critical > 0 && <span class="text-red-300">{f.critical} Critical</span>}
-                    {f.high > 0 && <span class="text-orange-300">{f.high} High</span>}
-                    {f.medium > 0 && <span class="text-yellow-200">{f.medium} Medium</span>}
-                    {f.low > 0 && <span class="text-green-300">{f.low} Low</span>}
+                    {f.critical > 0 && <span class="text-danger">{f.critical} Critical</span>}
+                    {f.high > 0 && <span class="text-hot">{f.high} High</span>}
+                    {f.medium > 0 && <span class="text-warn">{f.medium} Medium</span>}
+                    {f.low > 0 && <span class="text-ok">{f.low} Low</span>}
                   </div>
                 )}
               </article>
@@ -237,29 +237,29 @@ const sections = [
         </div>
 
         {(protocolMeta || bugBounty) && (
-          <div class="mt-6 pt-6 border-t border-slate-700/60 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+          <div class="mt-6 pt-6 border-t border-line-2 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
             {protocolMeta && (
               <div class="space-y-1.5">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Protocol</h3>
-                {protocolMeta.website && <div><span class="text-slate-500">Website:</span> <a href={protocolMeta.website} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">{protocolMeta.website} ↗</a></div>}
-                {protocolMeta.docs && <div><span class="text-slate-500">Docs:</span> <a href={protocolMeta.docs} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">{protocolMeta.docs} ↗</a></div>}
-                {protocolMeta.github && <div><span class="text-slate-500">GitHub:</span> <a href={protocolMeta.github} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">{protocolMeta.github} ↗</a></div>}
-                {protocolMeta.launchDate && <div><span class="text-slate-500">Launched:</span> {protocolMeta.launchDate}</div>}
-                {protocolMeta.tvlSource && <div><span class="text-slate-500">TVL Source:</span> {protocolMeta.tvlSource}</div>}
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-ink-4 mb-2">Protocol</h3>
+                {protocolMeta.website && <div><span class="text-ink-4">Website:</span> <a href={protocolMeta.website} target="_blank" rel="noopener noreferrer" class="text-accent hover:text-accent-2">{protocolMeta.website} ↗</a></div>}
+                {protocolMeta.docs && <div><span class="text-ink-4">Docs:</span> <a href={protocolMeta.docs} target="_blank" rel="noopener noreferrer" class="text-accent hover:text-accent-2">{protocolMeta.docs} ↗</a></div>}
+                {protocolMeta.github && <div><span class="text-ink-4">GitHub:</span> <a href={protocolMeta.github} target="_blank" rel="noopener noreferrer" class="text-accent hover:text-accent-2">{protocolMeta.github} ↗</a></div>}
+                {protocolMeta.launchDate && <div><span class="text-ink-4">Launched:</span> {protocolMeta.launchDate}</div>}
+                {protocolMeta.tvlSource && <div><span class="text-ink-4">TVL Source:</span> {protocolMeta.tvlSource}</div>}
               </div>
             )}
             <div class="space-y-1.5">
-              <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Operations</h3>
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-ink-4 mb-2">Operations</h3>
               <div>
-                <span class="text-slate-500">Bug Bounty:</span>{' '}
+                <span class="text-ink-4">Bug Bounty:</span>{' '}
                 {bugBounty ? (
-                  <span class="text-green-300">
+                  <span class="text-ok">
                     {bugBounty.provider}
                     {bugBounty.maxBountyUsd ? ` — up to $${bugBounty.maxBountyUsd.toLocaleString()}` : ''}
-                    {bugBounty.url ? <> — <a href={bugBounty.url} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">link ↗</a></> : null}
+                    {bugBounty.url ? <> — <a href={bugBounty.url} target="_blank" rel="noopener noreferrer" class="text-accent hover:text-accent-2">link ↗</a></> : null}
                   </span>
                 ) : (
-                  <span class="text-slate-400">None detected</span>
+                  <span class="text-ink-3">None detected</span>
                 )}
               </div>
             </div>
@@ -272,13 +272,13 @@ const sections = [
       <section class="kyp-panel">
         <details class="group">
           <summary class="cursor-pointer flex items-center justify-between gap-2 list-none">
-            <span class="font-semibold text-slate-200">All role assignments ({accessControlRoles.length})</span>
-            <span class="text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true">▾</span>
+            <span class="font-semibold text-ink-2">All role assignments ({accessControlRoles.length})</span>
+            <span class="text-ink-3 group-open:rotate-180 transition-transform" aria-hidden="true">▾</span>
           </summary>
           <div class="overflow-x-auto mt-4">
             <table class="w-full text-sm">
               <thead>
-                <tr class="border-b border-slate-700 text-slate-400 text-left">
+                <tr class="border-b border-line-2 text-ink-3 text-left">
                   <th class="pb-2 pr-4 font-semibold">Contract</th>
                   <th class="pb-2 pr-4 font-semibold">Role</th>
                   <th class="pb-2 pr-4 font-semibold">Holder</th>
@@ -287,11 +287,11 @@ const sections = [
               </thead>
               <tbody>
                 {accessControlRoles.map(r => (
-                  <tr class="border-b border-slate-700/40 align-top">
+                  <tr class="border-b border-line align-top">
                     <td class="py-2 pr-4 font-medium">{r.contract}</td>
                     <td class="py-2 pr-4 font-mono text-xs">{r.role}</td>
-                    <td class={`py-2 pr-4 ${r.holder.includes('EOA') ? 'text-red-300' : r.holder.includes('Safe') || r.holder.includes('multisig') ? 'text-green-300' : 'text-slate-300'}`}>{r.holder}</td>
-                    <td class="py-2 text-xs text-slate-400">{r.powers}</td>
+                    <td class={`py-2 pr-4 ${r.holder.includes('EOA') ? 'text-danger' : r.holder.includes('Safe') || r.holder.includes('multisig') ? 'text-ok' : 'text-ink-2'}`}>{r.holder}</td>
+                    <td class="py-2 text-xs text-ink-3">{r.powers}</td>
                   </tr>
                 ))}
               </tbody>
@@ -304,10 +304,10 @@ const sections = [
   </div>
 
   {relatedNotes.length > 0 && (
-    <section class="mt-10 pt-6 border-t border-slate-700/60">
+    <section class="mt-10 pt-6 border-t border-line-2">
       <div class="flex items-baseline justify-between mb-3">
-        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Related notes</h2>
-        <a href="/notes" class="text-xs text-blue-400 hover:text-blue-300">All notes →</a>
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-ink-4">Related notes</h2>
+        <a href="/notes" class="text-xs text-accent hover:text-accent-2">All notes →</a>
       </div>
       <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
         {relatedNotes.map(note => {
@@ -315,14 +315,14 @@ const sections = [
           return (
             <li>
               <a href={`/notes/${note.id}`} class="kyp-card block h-full p-4">
-                <time datetime={date} class="text-[11px] uppercase tracking-wider text-slate-500 font-mono">{date}</time>
-                <div class="text-sm font-semibold text-slate-100 mt-1 leading-snug">{note.data.title}</div>
+                <time datetime={date} class="text-[11px] uppercase tracking-wider text-ink-4 font-mono">{date}</time>
+                <div class="text-sm font-semibold text-ink mt-1 leading-snug">{note.data.title}</div>
                 {note.data.description && (
-                  <p class="text-xs text-slate-400 mt-2 leading-relaxed line-clamp-2">{note.data.description}</p>
+                  <p class="text-xs text-ink-3 mt-2 leading-relaxed line-clamp-2">{note.data.description}</p>
                 )}
                 <div class="flex flex-wrap items-center gap-1 mt-2 text-[11px]">
                   {note.data.tags.slice(0, 3).map(tag => (
-                    <span class="px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-700">{tag}</span>
+                    <span class="kyp-tag">{tag}</span>
                   ))}
                 </div>
               </a>
@@ -333,8 +333,8 @@ const sections = [
     </section>
   )}
 
-  <section class="mt-10 pt-6 border-t border-slate-700/60">
-    <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">All reports for {protocol}</h2>
+  <section class="mt-10 pt-6 border-t border-line-2">
+    <h2 class="text-xs font-semibold uppercase tracking-wider text-ink-4 mb-3">All reports for {protocol}</h2>
     <ul class="space-y-2">
       {allReports.map(r => (
         <li>

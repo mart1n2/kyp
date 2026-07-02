@@ -14,7 +14,7 @@ const { sections } = Astro.props;
 
 <nav
   id="page-nav"
-  class="sticky top-[var(--header-h)] z-30 -mx-4 sm:mx-0 mb-6 bg-slate-950/85 backdrop-blur border-b border-white/5 sm:rounded-b-lg"
+  class="sticky top-[var(--header-h)] z-30 -mx-4 sm:mx-0 mb-6 bg-page/85 backdrop-blur border-b border-line sm:rounded-b-lg"
   aria-label="Page sections"
 >
   <div class="overflow-x-auto">
@@ -25,11 +25,11 @@ const { sections } = Astro.props;
             href={`#${s.id}`}
             data-page-nav-link
             data-section={s.id}
-            class="page-nav-link inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            class="page-nav-link inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-ink-3 hover:text-ink hover:bg-ink/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <span>{s.label}</span>
             {typeof s.count === 'number' && (
-              <span class="text-xs text-slate-500 page-nav-count">{s.count}</span>
+              <span class="text-xs text-ink-4 page-nav-count">{s.count}</span>
             )}
           </a>
         </li>
@@ -40,11 +40,11 @@ const { sections } = Astro.props;
 
 <style>
   .page-nav-link.is-active {
-    background-color: rgb(30 41 59); /* slate-800 */
-    color: rgb(241 245 249);          /* slate-100 */
+    background-color: rgb(var(--c-ink) / 0.08);
+    color: rgb(var(--c-ink));
   }
   .page-nav-link.is-active .page-nav-count {
-    color: rgb(148 163 184);          /* slate-400 */
+    color: rgb(var(--c-ink-3));
   }
 </style>
 

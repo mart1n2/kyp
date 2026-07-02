@@ -14,8 +14,8 @@ const { kind = 'essay', incident, size = 'md' } = Astro.props;
 if (kind === 'essay') return Astro.slots.has('default') ? Astro.slots.render('default') : null;
 
 const palette: Record<string, string> = {
-  incident: 'bg-red-500/12 text-red-200 border-red-500/30',
-  research: 'bg-amber-500/12 text-amber-200 border-amber-500/30',
+  incident: 'bg-danger/10 text-danger border-danger/30',
+  research: 'bg-warn/10 text-warn border-warn/30',
 };
 
 const label: Record<string, string> = {

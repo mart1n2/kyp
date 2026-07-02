@@ -52,31 +52,31 @@ const cards = protocols.map(report => {
 
 <Layout title="Know Your Protocol — DeFi Permission Analysis" description="Permission analysis and audit findings for DeFi protocols. Technical reference only — not financial advice.">
   <section class="mb-10">
-    <div class="inline-flex items-center gap-2 mb-3 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-medium text-blue-300 uppercase tracking-wider">
-      <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"></span>
+    <div class="inline-flex items-center gap-2 mb-3 px-2.5 py-1 rounded-full bg-accent/10 border border-accent/20 text-[11px] font-medium text-accent-2 uppercase tracking-wider">
+      <span class="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(96,165,250,0.8)]"></span>
       {totalProtocols} protocol{totalProtocols === 1 ? '' : 's'} indexed
     </div>
-    <h1 class="text-4xl sm:text-5xl font-extrabold mb-3 tracking-tight bg-gradient-to-br from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">Know Your Protocol</h1>
-    <p class="text-slate-400 max-w-2xl leading-relaxed">
+    <h1 class="text-4xl sm:text-5xl font-extrabold mb-3 tracking-tight bg-gradient-to-br from-ink via-ink to-ink-3 bg-clip-text text-transparent">Know Your Protocol</h1>
+    <p class="text-ink-3 max-w-2xl leading-relaxed">
       Permission analysis and audit findings for DeFi protocols. Technical reference only — not financial advice.
     </p>
 
     <div class="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div class="kyp-kpi">
         <div class="kyp-label">Protocols Indexed</div>
-        <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight font-mono">{totalProtocols}</div>
+        <div class="text-3xl font-extrabold mt-1.5 text-ink tracking-tight font-mono">{totalProtocols}</div>
       </div>
       <div class="kyp-kpi">
         <div class="kyp-label">Chains Covered</div>
-        <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight font-mono">{chainsCovered}</div>
+        <div class="text-3xl font-extrabold mt-1.5 text-ink tracking-tight font-mono">{chainsCovered}</div>
       </div>
       <div class="kyp-kpi">
         <div class="kyp-label">Gate: Fail</div>
-        <div class={`text-3xl font-extrabold mt-1.5 tracking-tight font-mono ${failingGates > 0 ? 'text-red-300' : 'text-slate-50'}`}>{failingGates}</div>
+        <div class={`text-3xl font-extrabold mt-1.5 tracking-tight font-mono ${failingGates > 0 ? 'text-danger' : 'text-ink'}`}>{failingGates}</div>
       </div>
       <div class="kyp-kpi">
         <div class="kyp-label">Latest Audit</div>
-        <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight"><RelativeAge date={latestAuditDate} /></div>
+        <div class="text-3xl font-extrabold mt-1.5 text-ink tracking-tight"><RelativeAge date={latestAuditDate} /></div>
       </div>
     </div>
   </section>
@@ -86,13 +86,13 @@ const cards = protocols.map(report => {
       <FilterPanel protocols={protocols} />
     </div>
     <div class="lg:col-span-3">
-      <div class="flex items-center justify-between gap-3 mb-3 text-sm text-slate-400">
+      <div class="flex items-center justify-between gap-3 mb-3 text-sm text-ink-3">
         <span id="match-count" aria-live="polite">{totalProtocols} protocol{totalProtocols === 1 ? '' : 's'}</span>
         <label class="flex items-center gap-2">
-          <span class="text-xs text-slate-500">Sort</span>
+          <span class="text-xs text-ink-4">Sort</span>
           <select
             id="sort-select"
-            class="bg-slate-900/60 border border-slate-700 rounded-md text-xs text-slate-300 px-2 py-1.5 focus:outline-none focus:border-blue-500"
+            class="bg-surface/60 border border-line-2 rounded-md text-xs text-ink-2 px-2 py-1.5 focus:outline-none focus:border-accent"
           >
             <option value="audit-desc">Newest audit</option>
             <option value="audit-asc">Oldest audit</option>
@@ -122,28 +122,28 @@ const cards = protocols.map(report => {
         ))}
       </div>
 
-      <div id="empty-state" class="hidden p-8 bg-slate-800/40 border border-dashed border-slate-700 rounded-lg text-center">
-        <div class="text-slate-300 font-semibold mb-1">No protocols match the current filters</div>
-        <p class="text-sm text-slate-500">Try clearing one or more filters.</p>
+      <div id="empty-state" class="hidden p-8 bg-inset/40 border border-dashed border-line-2 rounded-lg text-center">
+        <div class="text-ink-2 font-semibold mb-1">No protocols match the current filters</div>
+        <p class="text-sm text-ink-4">Try clearing one or more filters.</p>
       </div>
 
       {totalProtocols === 0 && (
-        <div class="p-8 bg-slate-800/40 border border-dashed border-slate-700 rounded-lg text-center">
-          <div class="text-slate-300 font-semibold mb-1">No protocols indexed yet</div>
-          <p class="text-sm text-slate-500">Reports added to <code class="text-slate-400">src/content/reports/</code> will appear here.</p>
+        <div class="p-8 bg-inset/40 border border-dashed border-line-2 rounded-lg text-center">
+          <div class="text-ink-2 font-semibold mb-1">No protocols indexed yet</div>
+          <p class="text-sm text-ink-4">Reports added to <code class="text-ink-3">src/content/reports/</code> will appear here.</p>
         </div>
       )}
     </div>
   </div>
 
   {recentNotes.length > 0 && (
-    <section class="mt-12 pt-8 border-t border-slate-700/60">
+    <section class="mt-12 pt-8 border-t border-line-2">
       <div class="flex items-baseline justify-between mb-4">
         <div>
           <h2 class="text-xl font-bold">Recent notes</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Security research, writeups, and short essays.</p>
+          <p class="text-xs text-ink-4 mt-0.5">Security research, writeups, and short essays.</p>
         </div>
-        <a href="/notes" class="text-sm text-blue-400 hover:text-blue-300">View all →</a>
+        <a href="/notes" class="text-sm text-accent hover:text-accent-2">View all →</a>
       </div>
       <ul class="grid grid-cols-1 md:grid-cols-3 gap-3">
         {recentNotes.map(note => {
@@ -161,18 +161,18 @@ const cards = protocols.map(report => {
                   </div>
                 )}
                 <div class="flex items-baseline gap-1.5">
-                  <time datetime={effectiveDate} class="text-[11px] uppercase tracking-wider text-slate-500 font-mono">{effectiveDate}</time>
+                  <time datetime={effectiveDate} class="text-[11px] uppercase tracking-wider text-ink-4 font-mono">{effectiveDate}</time>
                   {isUpdated && (
-                    <span class="text-[10px] text-slate-500 font-mono" title={`Originally published ${origDate}`}>updated</span>
+                    <span class="text-[10px] text-ink-4 font-mono" title={`Originally published ${origDate}`}>updated</span>
                   )}
                 </div>
-                <h3 class="text-sm font-semibold text-slate-100 mt-1 leading-snug">{note.data.title}</h3>
+                <h3 class="text-sm font-semibold text-ink mt-1 leading-snug">{note.data.title}</h3>
                 {note.data.description && (
-                  <p class="text-xs text-slate-400 mt-2 leading-relaxed line-clamp-3">{note.data.description}</p>
+                  <p class="text-xs text-ink-3 mt-2 leading-relaxed line-clamp-3">{note.data.description}</p>
                 )}
                 <div class="flex flex-wrap items-center gap-1 mt-3 text-[11px]">
                   {note.data.tags.slice(0, 3).map(tag => (
-                    <span class="px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-700">{tag}</span>
+                    <span class="kyp-tag">{tag}</span>
                   ))}
                 </div>
               </a>

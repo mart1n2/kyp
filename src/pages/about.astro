@@ -6,17 +6,17 @@ import GateBadge from '../components/GateBadge.astro';
 <Layout title="About — Know Your Protocol" description="What KYP is, how protocols are assessed, and how to read the dashboard.">
   <div class="max-w-3xl mx-auto">
     <h1 class="text-3xl font-bold mb-2">About Know Your Protocol</h1>
-    <p class="text-slate-400 mb-8">A public, technical reference for DeFi protocol permissions and audit findings.</p>
+    <p class="text-ink-3 mb-8">A public, technical reference for DeFi protocol permissions and audit findings.</p>
 
     <section class="space-y-4 mb-10">
       <h2 class="text-xl font-bold">What this site is</h2>
-      <p class="text-slate-300">
+      <p class="text-ink-2">
         KYP indexes structured permission and audit data for DeFi protocols. Each entry is the
         product of an audit framework that examines a protocol's smart contracts, role assignments,
         upgrade authority, oracle wiring, audit history, and operational maturity. The output is a
         descriptive snapshot — not a recommendation.
       </p>
-      <p class="text-slate-300">
+      <p class="text-ink-2">
         The site is intended as a reference for technical readers — researchers, security
         engineers, fund analysts, and protocol contributors. It does <strong>not</strong> issue
         investment advice.
@@ -25,7 +25,7 @@ import GateBadge from '../components/GateBadge.astro';
 
     <section class="space-y-4 mb-10">
       <h2 class="text-xl font-bold">The framework, in brief</h2>
-      <p class="text-slate-300">
+      <p class="text-ink-2">
         The framework runs in stages: reconnaissance, architecture mapping, parallel domain-expert
         review, optional simulation, and synthesis. The result is a security score (0–100), a
         letter grade (A–F), an aggregate risk level (Critical / High / Medium / Low), and the
@@ -38,8 +38,8 @@ import GateBadge from '../components/GateBadge.astro';
       <h2 class="text-xl font-bold">Reading the dashboard</h2>
 
       <div>
-        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-2">Deal Breaker Gate</h3>
-        <ul class="space-y-1 text-slate-300">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-ink-3 mb-2">Deal Breaker Gate</h3>
+        <ul class="space-y-1 text-ink-2">
           <li><GateBadge gate="Pass" size="sm" /> — no deal breakers triggered.</li>
           <li><GateBadge gate="Conditional" size="sm" /> — passed the gate with material caveats.</li>
           <li><GateBadge gate="Watchlist" size="sm" /> — passed but with notable open concerns.</li>
@@ -49,25 +49,25 @@ import GateBadge from '../components/GateBadge.astro';
       </div>
 
       <div>
-        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-2">Trust Surfaces</h3>
-        <p class="text-slate-300">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-ink-3 mb-2">Trust Surfaces</h3>
+        <p class="text-ink-2">
           A <em>trust surface</em> is a power on a contract that, if abused, affects user funds —
           for example, "USDat — Proxy upgrade" or "Oracle — admin role". Each surface is annotated
           with its controller, controller type, configured delay (timelock hours), and worst-case
           impact.
         </p>
-        <ul class="space-y-1 mt-2 text-slate-300 text-sm">
-          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-red-900/40 text-red-300 border-red-800">EOA</span> — externally-owned account; a single key.</li>
-          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-green-900/40 text-green-300 border-green-800">Multisig</span> — Safe / Gnosis-style multi-signature wallet.</li>
-          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-purple-900/40 text-purple-300 border-purple-800">Timelock</span> — delayed execution contract; abuse has a public delay window.</li>
-          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-blue-900/40 text-blue-300 border-blue-800">Governance</span> — DAO or on-chain voting controller.</li>
-          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-slate-800 text-slate-300 border-slate-700">Contract / Unknown</span> — other on-chain controller, or unidentified.</li>
+        <ul class="space-y-1 mt-2 text-ink-2 text-sm">
+          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-danger/10 text-danger border-danger/30">EOA</span> — externally-owned account; a single key.</li>
+          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-ok/10 text-ok border-ok/30">Multisig</span> — Safe / Gnosis-style multi-signature wallet.</li>
+          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-viol/10 text-viol border-viol/30">Timelock</span> — delayed execution contract; abuse has a public delay window.</li>
+          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-info/10 text-info border-info/30">Governance</span> — DAO or on-chain voting controller.</li>
+          <li><span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold bg-ink/5 text-ink-2 border-line-2">Contract / Unknown</span> — other on-chain controller, or unidentified.</li>
         </ul>
       </div>
 
       <div>
-        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-2">Audit Tiers</h3>
-        <p class="text-slate-300 text-sm">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-ink-3 mb-2">Audit Tiers</h3>
+        <p class="text-ink-2 text-sm">
           Auditor tier is a coarse signal of engagement quality. <strong>Tier 1</strong> firms
           (e.g. Trail of Bits, OpenZeppelin, Certora, ConsenSys Diligence, Spearbit) typically do
           deep formal-verification or multi-week reviews. <strong>Tier 2</strong> firms (e.g. Three
@@ -78,8 +78,8 @@ import GateBadge from '../components/GateBadge.astro';
       </div>
 
       <div>
-        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-2">Open Issues — P0 / P1 / P2</h3>
-        <p class="text-slate-300 text-sm">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-ink-3 mb-2">Open Issues — P0 / P1 / P2</h3>
+        <p class="text-ink-2 text-sm">
           P0 issues are urgent (immediate action recommended to the protocol team). P1 are
           important (target ≤ 1 month). P2 are improvements (target ≤ 3 months). These priorities
           are addressed to <em>protocol maintainers</em>, not to readers.
@@ -89,7 +89,7 @@ import GateBadge from '../components/GateBadge.astro';
 
     <section class="space-y-4 mb-10">
       <h2 class="text-xl font-bold">Disclaimer</h2>
-      <p class="text-slate-300">
+      <p class="text-ink-2">
         This site presents technical audit findings and protocol metadata only. It does not
         constitute financial, investment, legal, or tax advice, and does not endorse any protocol.
         Smart-contract security is dynamic; assessments may be incomplete or out of date. Use at

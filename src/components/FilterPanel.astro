@@ -27,22 +27,22 @@ const groups = [
 ---
 
 <aside class="lg:sticky lg:top-[calc(var(--header-h)+16px)] lg:max-h-[calc(100vh-var(--header-h)-2rem)] lg:overflow-y-auto">
-  <details data-filter-details class="group rounded-lg border border-white/5 bg-slate-900/60 lg:border-0 lg:bg-transparent lg:rounded-none">
+  <details data-filter-details class="group rounded-lg border border-line bg-surface/60 lg:border-0 lg:bg-transparent lg:rounded-none">
     <summary class="lg:hidden flex items-center justify-between gap-2 px-4 py-3 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
-      <span class="text-sm font-semibold uppercase tracking-wider text-slate-400">Filters</span>
+      <span class="text-sm font-semibold uppercase tracking-wider text-ink-3">Filters</span>
       <span class="flex items-center gap-2">
-        <span data-active-filter-count class="hidden px-1.5 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] font-semibold leading-none"></span>
-        <span class="text-slate-500 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
+        <span data-active-filter-count class="hidden px-1.5 py-0.5 rounded-full bg-accent/15 border border-accent/30 text-accent-2 text-[11px] font-semibold leading-none"></span>
+        <span class="text-ink-4 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
       </span>
     </summary>
 
     <div class="px-4 pb-4 pt-1 lg:p-0 space-y-5">
       <div class="flex items-center justify-between">
-        <h2 class="hidden lg:block text-sm font-semibold uppercase tracking-wider text-slate-400">Filters</h2>
+        <h2 class="hidden lg:block text-sm font-semibold uppercase tracking-wider text-ink-3">Filters</h2>
         <button
           type="button"
           data-clear-filters
-          class="text-xs text-slate-500 hover:text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
+          class="text-xs text-ink-4 hover:text-accent-2 disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
           disabled
         >
           Clear all
@@ -51,16 +51,16 @@ const groups = [
 
       {groups.map(group => (
         <fieldset>
-          <legend class="font-semibold mb-2 text-slate-200">{group.legend}</legend>
+          <legend class="font-semibold mb-2 text-ink-2">{group.legend}</legend>
           <ul class="space-y-1.5">
             {group.items.map(({ value, count }) => (
               <li>
                 <label class="flex items-center justify-between gap-2 group/item cursor-pointer text-sm">
                   <span class="flex items-center gap-2">
-                    <input type="checkbox" value={value} class={`${group.cls} rounded accent-blue-500`} disabled={count === 0} />
-                    <span class={count === 0 ? 'text-slate-600' : 'text-slate-300 group-hover/item:text-white'}>{value}</span>
+                    <input type="checkbox" value={value} class={`${group.cls} rounded accent-[rgb(var(--c-accent))]`} disabled={count === 0} />
+                    <span class={count === 0 ? 'text-ink-4' : 'text-ink-2 group-hover/item:text-ink'}>{value}</span>
                   </span>
-                  <span class="text-xs text-slate-500 font-mono">{count}</span>
+                  <span class="text-xs text-ink-4 font-mono">{count}</span>
                 </label>
               </li>
             ))}

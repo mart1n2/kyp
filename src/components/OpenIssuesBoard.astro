@@ -21,9 +21,9 @@ const sorted = [...issues].sort((a, b) => priorityOrder[a.priority] - priorityOr
 import { severityTextClass } from '../utils/badges';
 
 const priorityStyle: Record<string, string> = {
-  P0: 'bg-red-900/50 text-red-200 border-red-700',
-  P1: 'bg-orange-900/50 text-orange-200 border-orange-700',
-  P2: 'bg-yellow-900/40 text-yellow-200 border-yellow-700',
+  P0: 'bg-danger/10 text-danger border-danger/40',
+  P1: 'bg-hot/10 text-hot border-hot/40',
+  P2: 'bg-warn/10 text-warn border-warn/40',
 };
 
 const counts = sorted.reduce(
@@ -51,17 +51,17 @@ const counts = sorted.reduce(
           <div class="flex flex-wrap items-center gap-2 mb-2">
             <span class={`px-2 py-0.5 rounded border text-xs font-semibold ${priorityStyle[issue.priority]}`}>{issue.priority}</span>
             <span class={`text-xs font-semibold ${severityTextClass(issue.severity)}`}>{issue.severity}</span>
-            <span class="text-xs text-slate-500">·</span>
-            <span class="text-xs text-slate-400">{issue.category}</span>
-            <span class="ml-auto text-xs text-slate-400">Timeline: <span class="text-slate-200">{issue.timeline}</span></span>
+            <span class="text-xs text-ink-4">·</span>
+            <span class="text-xs text-ink-3">{issue.category}</span>
+            <span class="ml-auto text-xs text-ink-3">Timeline: <span class="text-ink-2">{issue.timeline}</span></span>
           </div>
-          <div class="font-semibold text-slate-100">{issue.issue}</div>
-          <div class="text-sm text-slate-400 mt-1"><span class="text-slate-500">Impact:</span> {issue.impact}</div>
-          <div class="text-sm text-slate-300 mt-1"><span class="text-slate-500">Recommendation:</span> {issue.recommendation}</div>
+          <div class="font-semibold text-ink">{issue.issue}</div>
+          <div class="text-sm text-ink-3 mt-1"><span class="text-ink-4">Impact:</span> {issue.impact}</div>
+          <div class="text-sm text-ink-2 mt-1"><span class="text-ink-4">Recommendation:</span> {issue.recommendation}</div>
         </li>
       ))}
     </ul>
   ) : (
-    <p class="text-slate-400">No open issues recorded</p>
+    <p class="text-ink-3">No open issues recorded</p>
   )}
 </div>

@@ -2,21 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --color-bg: #020617;       /* slate-950 — page */
-  --color-surface: #0f172a;  /* slate-900 — header/footer/panels */
-  --color-elevated: #1e293b; /* slate-800 — interactive cards */
-  --color-text: #f1f5f9;
-  --color-text-muted: #94a3b8;
-  --color-border: rgba(148, 163, 184, 0.12);  /* slate-400 @ 12% — softer than slate-700 */
-  --color-accent: #60a5fa;   /* blue-400 */
-  --color-accent-glow: rgba(59, 130, 246, 0.15);
-  --header-h: 57px;          /* h-14 nav + 1px accent strip — sticky offsets derive from this */
+/* ---------------------------------------------------------------------------
+ * Theme tokens
+ *   Components reference semantic roles (via tailwind.config.mjs colors);
+ *   these blocks decide what each role means per theme. RGB triplets so
+ *   Tailwind alpha composition (bg-danger/10) works.
+ * ------------------------------------------------------------------------- */
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --c-page: 2 6 23;         /* slate-950 */
+  --c-surface: 15 23 42;    /* slate-900 */
+  --c-elevated: 30 41 59;   /* slate-800 */
+  --c-inset: 11 17 32;
+
+  --c-ink: 241 245 249;     /* slate-100 */
+  --c-ink-2: 203 213 225;   /* slate-300 */
+  --c-ink-3: 148 163 184;   /* slate-400 */
+  --c-ink-4: 100 116 139;   /* slate-500 */
+
+  --c-line: rgba(148, 163, 184, 0.12);
+  --c-line-2: rgba(148, 163, 184, 0.25);
+
+  --c-accent: 96 165 250;   /* blue-400 */
+  --c-accent-2: 147 197 253;/* blue-300 */
+
+  --c-danger: 252 165 165;  /* red-300 */
+  --c-hot: 253 186 116;     /* orange-300 */
+  --c-warn: 253 224 71;     /* yellow-300 */
+  --c-ok: 134 239 172;      /* green-300 */
+  --c-info: 147 197 253;    /* blue-300 */
+  --c-viol: 196 181 253;    /* violet-300 — timelock chips */
+
+  --glow-accent: rgba(59, 130, 246, 0.15);
+  --ambient-1: rgba(59, 130, 246, 0.08);
+  --ambient-2: rgba(99, 102, 241, 0.04);
+  --card-hover-shadow:
+    0 0 0 1px rgba(96, 165, 250, 0.08),
+    0 12px 32px -16px rgba(59, 130, 246, 0.25);
+  --panel-sheen: rgba(255, 255, 255, 0.015);
+  --kpi-sheen: rgba(255, 255, 255, 0.025);
+
+  --header-h: 57px;         /* h-14 nav + 1px accent strip — sticky offsets derive from this */
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --c-page: 244 247 251;
+  --c-surface: 255 255 255;
+  --c-elevated: 255 255 255;
+  --c-inset: 241 245 249;   /* slate-100 */
+
+  --c-ink: 15 23 42;        /* slate-900 */
+  --c-ink-2: 51 65 85;      /* slate-700 */
+  --c-ink-3: 71 85 105;     /* slate-600 */
+  --c-ink-4: 100 116 139;   /* slate-500 */
+
+  --c-line: rgba(15, 23, 42, 0.10);
+  --c-line-2: rgba(15, 23, 42, 0.16);
+
+  --c-accent: 37 99 235;    /* blue-600 */
+  --c-accent-2: 29 78 216;  /* blue-700 */
+
+  --c-danger: 185 28 28;    /* red-700 */
+  --c-hot: 154 52 18;       /* orange-800 */
+  --c-warn: 133 77 14;      /* yellow-800 */
+  --c-ok: 22 101 52;        /* green-800 */
+  --c-info: 29 78 216;      /* blue-700 */
+  --c-viol: 109 40 217;     /* violet-700 — timelock chips */
+
+  --glow-accent: rgba(37, 99, 235, 0.10);
+  --ambient-1: rgba(37, 99, 235, 0.05);
+  --ambient-2: rgba(99, 102, 241, 0.03);
+  --card-hover-shadow:
+    0 0 0 1px rgba(37, 99, 235, 0.10),
+    0 12px 28px -14px rgba(15, 23, 42, 0.18);
+  --panel-sheen: rgba(255, 255, 255, 0.4);
+  --kpi-sheen: rgba(255, 255, 255, 0.5);
 }
 
 html, body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  background-color: rgb(var(--c-page));
+  color: rgb(var(--c-ink));
   font-family:
     'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -29,8 +98,8 @@ html, body {
 /* Subtle ambient gradient — adds depth without distraction. */
 body {
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59, 130, 246, 0.08), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 0%, rgba(99, 102, 241, 0.04), transparent 50%);
+    radial-gradient(ellipse 80% 50% at 50% -10%, var(--ambient-1), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 0%, var(--ambient-2), transparent 50%);
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -55,7 +124,7 @@ a {
 
 /* One focus language for the whole site — replaces scattered per-element rings. */
 :focus-visible {
-  outline: 2px solid rgba(96, 165, 250, 0.8);
+  outline: 2px solid rgb(var(--c-accent) / 0.8);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -75,21 +144,36 @@ a {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: rgb(var(--c-page));
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.15);
+  background: rgb(var(--c-ink-3) / 0.25);
   border-radius: 6px;
-  border: 2px solid var(--color-bg);
+  border: 2px solid rgb(var(--c-page));
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.25);
+  background: rgb(var(--c-ink-3) / 0.4);
 }
 
 /* Selection — themed to accent. */
 ::selection {
-  background: rgba(59, 130, 246, 0.35);
-  color: #fff;
+  background: rgb(var(--c-accent) / 0.35);
+}
+
+/* Dual-theme Shiki code blocks (defaultColor: false emits both palettes). */
+[data-theme='dark'] .astro-code,
+[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+}
+[data-theme='light'] .astro-code,
+[data-theme='light'] .astro-code span {
+  color: var(--shiki-light) !important;
+  background-color: var(--shiki-light-bg) !important;
+  font-style: var(--shiki-light-font-style) !important;
+  font-weight: var(--shiki-light-font-weight) !important;
 }
 
 /* ---------------------------------------------------------------------------
@@ -100,26 +184,31 @@ a {
  * ------------------------------------------------------------------------- */
 
 .kyp-card {
-  background: var(--color-elevated);
-  border: 1px solid var(--color-border);
+  background: rgb(var(--c-elevated));
+  border: 1px solid var(--c-line);
   border-radius: 0.5rem;
   transition: border-color 180ms ease, box-shadow 240ms ease, transform 180ms ease;
 }
+[data-theme='light'] .kyp-card {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
 .kyp-card:hover {
-  border-color: rgba(96, 165, 250, 0.4);
+  border-color: rgb(var(--c-accent) / 0.4);
   transform: translateY(-1px);
-  box-shadow:
-    0 0 0 1px rgba(96, 165, 250, 0.08),
-    0 12px 32px -16px rgba(59, 130, 246, 0.25);
+  box-shadow: var(--card-hover-shadow);
 }
 
 .kyp-panel {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.015) 0%, rgba(255, 255, 255, 0) 30%),
-    rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--color-border);
+    linear-gradient(180deg, var(--panel-sheen) 0%, rgba(255, 255, 255, 0) 30%),
+    rgb(var(--c-surface) / 0.6);
+  border: 1px solid var(--c-line);
   border-radius: 0.75rem;
   padding: 1.25rem;
+}
+[data-theme='light'] .kyp-panel {
+  background: rgb(var(--c-surface));
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 @media (min-width: 640px) {
   .kyp-panel {
@@ -128,9 +217,12 @@ a {
 }
 
 .kyp-inset {
-  background: rgba(2, 6, 23, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  background: rgb(var(--c-inset) / 0.45);
+  border: 1px solid var(--c-line);
   border-radius: 0.5rem;
+}
+[data-theme='light'] .kyp-inset {
+  background: rgb(var(--c-inset) / 0.7);
 }
 
 /* Section eyebrow / micro-label — one size, one color, everywhere. */
@@ -140,25 +232,28 @@ a {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #64748b; /* slate-500 */
+  color: rgb(var(--c-ink-4));
 }
 
 /* KPI tile — slight inner gradient + ring for premium feel. */
 .kyp-kpi {
   position: relative;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0%, rgba(255, 255, 255, 0) 100%),
-    var(--color-elevated);
-  border: 1px solid var(--color-border);
+    linear-gradient(180deg, var(--kpi-sheen) 0%, rgba(255, 255, 255, 0) 100%),
+    rgb(var(--c-elevated));
+  border: 1px solid var(--c-line);
   border-radius: 0.5rem;
   padding: 1rem;
   overflow: hidden;
+}
+[data-theme='light'] .kyp-kpi {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 .kyp-kpi::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at top right, rgba(96, 165, 250, 0.06), transparent 60%);
+  background: radial-gradient(circle at top right, rgb(var(--c-accent) / 0.06), transparent 60%);
   pointer-events: none;
 }
 
@@ -168,30 +263,91 @@ a {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(96, 165, 250, 0.5) 30%,
-    rgba(99, 102, 241, 0.5) 70%,
+    rgb(var(--c-accent) / 0.5) 30%,
+    rgb(99 102 241 / 0.5) 70%,
     transparent 100%
   );
 }
 
+/* Tag chip — accent-tinted so tags read as metadata, not disabled text.
+ * AA contrast in both themes (6.9:1 dark / 5.8:1 light). */
+.kyp-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em; /* inline-flex collapses text-node whitespace before count spans */
+  padding: 2px 9px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgb(var(--c-accent-2));
+  background: rgb(var(--c-accent) / 0.10);
+  border: 1px solid rgb(var(--c-accent) / 0.25);
+}
+a.kyp-tag:hover,
+button.kyp-tag:hover {
+  background: rgb(var(--c-accent) / 0.18);
+  border-color: rgb(var(--c-accent) / 0.4);
+}
+
+/* Typography plugin → tokens. Both the base and the -invert- variable sets
+ * point at the same semantic roles, so existing `prose prose-invert` markup
+ * follows the theme without per-page edits. */
+.prose {
+  --tw-prose-body: rgb(var(--c-ink-2));
+  --tw-prose-headings: rgb(var(--c-ink));
+  --tw-prose-lead: rgb(var(--c-ink-2));
+  --tw-prose-links: rgb(var(--c-accent));
+  --tw-prose-bold: rgb(var(--c-ink));
+  --tw-prose-counters: rgb(var(--c-ink-3));
+  --tw-prose-bullets: rgb(var(--c-ink-4));
+  --tw-prose-hr: var(--c-line-2);
+  --tw-prose-quotes: rgb(var(--c-ink-2));
+  --tw-prose-quote-borders: rgb(var(--c-accent) / 0.5);
+  --tw-prose-captions: rgb(var(--c-ink-3));
+  --tw-prose-code: rgb(var(--c-accent-2));
+  --tw-prose-th-borders: var(--c-line-2);
+  --tw-prose-td-borders: var(--c-line);
+  --tw-prose-invert-body: var(--tw-prose-body);
+  --tw-prose-invert-headings: var(--tw-prose-headings);
+  --tw-prose-invert-lead: var(--tw-prose-lead);
+  --tw-prose-invert-links: var(--tw-prose-links);
+  --tw-prose-invert-bold: var(--tw-prose-bold);
+  --tw-prose-invert-counters: var(--tw-prose-counters);
+  --tw-prose-invert-bullets: var(--tw-prose-bullets);
+  --tw-prose-invert-hr: var(--tw-prose-hr);
+  --tw-prose-invert-quotes: var(--tw-prose-quotes);
+  --tw-prose-invert-quote-borders: var(--tw-prose-quote-borders);
+  --tw-prose-invert-captions: var(--tw-prose-captions);
+  --tw-prose-invert-code: var(--tw-prose-code);
+  --tw-prose-invert-th-borders: var(--tw-prose-th-borders);
+  --tw-prose-invert-td-borders: var(--tw-prose-td-borders);
+}
+
+/* Theme toggle — the icon shows the theme you'll switch to. */
+[data-theme='dark'] .theme-icon-moon,
+[data-theme='light'] .theme-icon-sun {
+  display: none;
+}
+
 /* Note-kind highlights — colored top stripe + tinted hover ring. */
 .kyp-card.is-incident {
-  border-top: 2px solid rgba(248, 113, 113, 0.7); /* red-400 */
-  box-shadow: inset 0 1px 0 rgba(248, 113, 113, 0.08);
+  border-top: 2px solid rgb(var(--c-danger) / 0.7);
+  box-shadow: inset 0 1px 0 rgb(var(--c-danger) / 0.08);
 }
 .kyp-card.is-incident:hover {
-  border-color: rgba(248, 113, 113, 0.45);
+  border-color: rgb(var(--c-danger) / 0.45);
   box-shadow:
-    0 0 0 1px rgba(248, 113, 113, 0.10),
-    0 12px 32px -16px rgba(248, 113, 113, 0.30);
+    0 0 0 1px rgb(var(--c-danger) / 0.10),
+    0 12px 32px -16px rgb(var(--c-danger) / 0.30);
 }
 .kyp-card.is-research {
-  border-top: 2px solid rgba(251, 191, 36, 0.7); /* amber-400 */
-  box-shadow: inset 0 1px 0 rgba(251, 191, 36, 0.08);
+  border-top: 2px solid rgb(var(--c-warn) / 0.7);
+  box-shadow: inset 0 1px 0 rgb(var(--c-warn) / 0.08);
 }
 .kyp-card.is-research:hover {
-  border-color: rgba(251, 191, 36, 0.45);
+  border-color: rgb(var(--c-warn) / 0.45);
   box-shadow:
-    0 0 0 1px rgba(251, 191, 36, 0.10),
-    0 12px 32px -16px rgba(251, 191, 36, 0.30);
+    0 0 0 1px rgb(var(--c-warn) / 0.10),
+    0 12px 32px -16px rgb(var(--c-warn) / 0.30);
 }

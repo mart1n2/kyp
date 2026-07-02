@@ -20,26 +20,26 @@ const explorerUrl = explorerUrlFor(chain);
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <div class="font-semibold">{contract.name}</div>
-              <a href={`${explorerUrl}${contract.address}`} target="_blank" rel="noopener noreferrer" class="font-mono text-xs text-blue-400 hover:text-blue-300 mt-1 inline-block break-all">{contract.address} ↗</a>
+              <a href={`${explorerUrl}${contract.address}`} target="_blank" rel="noopener noreferrer" class="font-mono text-xs text-accent hover:text-accent-2 mt-1 inline-block break-all">{contract.address} ↗</a>
             </div>
             <div class="flex gap-1.5 text-xs shrink-0">
               {contract.verified ? (
-                <span class="px-2 py-0.5 rounded border bg-green-900/40 text-green-200 border-green-800 font-medium">Verified</span>
+                <span class="px-2 py-0.5 rounded border bg-ok/10 text-ok border-ok/30 font-medium">Verified</span>
               ) : (
-                <span class="px-2 py-0.5 rounded border bg-red-900/40 text-red-200 border-red-800 font-medium">Unverified</span>
+                <span class="px-2 py-0.5 rounded border bg-danger/10 text-danger border-danger/30 font-medium">Unverified</span>
               )}
               {contract.type.includes('Proxy') && (
-                <span class="px-2 py-0.5 rounded border bg-blue-900/40 text-blue-200 border-blue-800 font-medium">Proxy</span>
+                <span class="px-2 py-0.5 rounded border bg-info/10 text-info border-info/30 font-medium">Proxy</span>
               )}
             </div>
           </div>
           {contract.compiler && (
-            <div class="text-xs text-slate-500 mt-2 font-mono">Compiler: {contract.compiler}</div>
+            <div class="text-xs text-ink-4 mt-2 font-mono">Compiler: {contract.compiler}</div>
           )}
         </div>
       ))}
     </div>
   ) : (
-    <p class="text-slate-400">No contract data available</p>
+    <p class="text-ink-3">No contract data available</p>
   )}
 </div>

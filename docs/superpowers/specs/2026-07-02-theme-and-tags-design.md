@@ -48,7 +48,8 @@ Status roles (fg; chips are `bg-<status>/10..15 border-<status>/30..40`):
 | `hot` | `#fdba74` | `#9a3412` | High risk |
 | `warn` | `#fde047` | `#854d0e` | Conditional, Medium, research |
 | `ok` | `#86efac` | `#166534` | Pass, Low, Tier-1, verified |
-| `info` | `#93c5fd` | `#1d4ed8` | Watchlist |
+| `info` | `#93c5fd` | `#1d4ed8` | Watchlist, Governance |
+| `viol` | `#c4b5fd` | `#6d28d9` | Timelock chips (added during conversion — keeps the Multisig↔Timelock distinction; 7.9:1 dark / 7.1:1 light) |
 
 Validated with the dataviz palette validator + WCAG math: all status text ≥4.5:1
 on its tinted chip in both themes (dark ≥6:1). Light `warn`↔`hot` are close for

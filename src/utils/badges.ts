@@ -3,11 +3,11 @@
 // edit once, consistent everywhere.
 
 const gateBadge: Record<string, string> = {
-  Pass:         'bg-green-900/50 text-green-200 border-green-700',
-  Conditional:  'bg-yellow-900/40 text-yellow-200 border-yellow-700',
-  Watchlist:    'bg-blue-900/40 text-blue-200 border-blue-700',
-  Fail:         'bg-red-900/50 text-red-200 border-red-700',
-  Inconclusive: 'bg-slate-800 text-slate-300 border-slate-700',
+  Pass:         'bg-ok/10 text-ok border-ok/40',
+  Conditional:  'bg-warn/10 text-warn border-warn/40',
+  Watchlist:    'bg-info/10 text-info border-info/40',
+  Fail:         'bg-danger/10 text-danger border-danger/40',
+  Inconclusive: 'bg-ink/5 text-ink-2 border-line-2',
 };
 
 export function gateBadgeClass(gate?: string): string {
@@ -15,24 +15,24 @@ export function gateBadgeClass(gate?: string): string {
 }
 
 const riskText: Record<string, string> = {
-  Critical: 'text-red-300',
-  High: 'text-orange-300',
-  Medium: 'text-yellow-200',
-  Low: 'text-green-300',
+  Critical: 'text-danger',
+  High: 'text-hot',
+  Medium: 'text-warn',
+  Low: 'text-ok',
 };
 
 export function riskTextClass(level?: string): string {
-  return riskText[level ?? ''] ?? 'text-slate-300';
+  return riskText[level ?? ''] ?? 'text-ink-2';
 }
 
 // Severity shares the risk palette deliberately — one mental model.
 export const severityTextClass = riskTextClass;
 
 export function scoreTextClass(score?: number | null): string {
-  if (score == null) return 'text-slate-300';
-  if (score >= 70) return 'text-green-300';
-  if (score >= 40) return 'text-yellow-300';
-  return 'text-red-300';
+  if (score == null) return 'text-ink-2';
+  if (score >= 70) return 'text-ok';
+  if (score >= 40) return 'text-warn';
+  return 'text-danger';
 }
 
 const explorerBase: Record<string, string> = {

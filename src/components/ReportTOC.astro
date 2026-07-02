@@ -14,22 +14,22 @@ const items = headings.filter(h => h.depth === 2 || h.depth === 3);
 {items.length > 0 && (
   <details
     data-toc-details
-    class="group lg:sticky lg:top-[calc(var(--header-h)+16px)] lg:max-h-[calc(100vh-var(--header-h)-2rem)] lg:overflow-y-auto rounded-lg border border-white/5 bg-slate-900/60 lg:border-0 lg:bg-transparent lg:rounded-none"
+    class="group lg:sticky lg:top-[calc(var(--header-h)+16px)] lg:max-h-[calc(100vh-var(--header-h)-2rem)] lg:overflow-y-auto rounded-lg border border-line bg-surface/60 lg:border-0 lg:bg-transparent lg:rounded-none"
   >
     <summary class="lg:hidden flex items-center justify-between gap-2 px-4 py-3 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
-      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">{title}</span>
-      <span class="text-slate-500 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
+      <span class="text-xs font-semibold uppercase tracking-wider text-ink-3">{title}</span>
+      <span class="text-ink-4 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
     </summary>
     <nav class="px-4 pb-4 pt-1 lg:p-0" aria-label="Table of contents">
-      <h3 class="hidden lg:block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">{title}</h3>
-      <ul class="space-y-1 text-sm border-l border-slate-700">
+      <h3 class="hidden lg:block text-xs font-semibold uppercase tracking-wider text-ink-4 mb-3">{title}</h3>
+      <ul class="space-y-1 text-sm border-l border-line-2">
         {items.map(heading => (
           <li class={heading.depth === 3 ? 'ml-3' : ''}>
             <a
               href={`#${heading.slug}`}
               data-toc-link
               data-section={heading.slug}
-              class="toc-link block pl-3 -ml-px py-1 border-l border-transparent text-slate-400 hover:text-white transition-colors"
+              class="toc-link block pl-3 -ml-px py-1 border-l border-transparent text-ink-3 hover:text-ink transition-colors"
             >
               {heading.text}
             </a>
@@ -42,8 +42,8 @@ const items = headings.filter(h => h.depth === 2 || h.depth === 3);
 
 <style>
   .toc-link.is-active {
-    color: rgb(241 245 249);
-    border-left-color: rgb(59 130 246); /* blue-500 */
+    color: rgb(var(--c-ink));
+    border-left-color: rgb(var(--c-accent));
   }
 </style>
 

@@ -27,7 +27,7 @@ const isActive = (path: string) =>
 
 const navLink = (path: string) =>
   `px-2.5 py-1.5 rounded-md transition-colors ${
-    isActive(path) ? 'text-white bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/5'
+    isActive(path) ? 'text-ink bg-ink/5' : 'text-ink-3 hover:text-ink hover:bg-ink/5'
   }`;
 ---
 
@@ -36,6 +36,17 @@ const navLink = (path: string) =>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script is:inline>
+      // Pre-paint theme init — must run before first render to avoid a flash.
+      (() => {
+        let t;
+        try { t = localStorage.getItem('theme'); } catch {}
+        if (t !== 'light' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <meta property="og:type" content={ogType} />
@@ -52,20 +63,21 @@ const navLink = (path: string) =>
     <meta name="twitter:card" content="summary" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="mask-icon" href="/favicon.svg" color="#60a5fa" />
-    <meta name="theme-color" content="#020617" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#020617" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f7fb" />
     <link rel="alternate" type="application/rss+xml" title="KYP Notes" href={new URL('/rss.xml', Astro.site)} />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <title>{title} | Know Your Protocol</title>
   </head>
   <body>
-    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-slate-800 focus:text-white focus:px-3 focus:py-2 focus:rounded">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-elevated focus:text-ink focus:px-3 focus:py-2 focus:rounded">
       Skip to content
     </a>
-    <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/80 backdrop-blur-md backdrop-saturate-150">
+    <header class="sticky top-0 z-40 border-b border-line bg-page/80 backdrop-blur-md backdrop-saturate-150">
       <div class="kyp-accent-strip"></div>
       <nav class="container mx-auto px-4 h-14 flex items-center justify-between gap-3 sm:gap-4">
-        <a href="/" class="flex items-center gap-2.5 font-bold text-lg hover:text-blue-300 transition-colors shrink-0">
-          <span class="inline-flex w-7 h-7 items-center justify-center rounded-md bg-gradient-to-br from-blue-500/25 to-indigo-500/15 ring-1 ring-blue-400/40 text-blue-200 text-[11px] font-extrabold tracking-tight shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">KYP</span>
+        <a href="/" class="flex items-center gap-2.5 font-bold text-lg hover:text-accent-2 transition-colors shrink-0">
+          <span class="inline-flex w-7 h-7 items-center justify-center rounded-md bg-gradient-to-br from-accent/25 to-indigo-500/15 ring-1 ring-accent/40 text-accent-2 text-[11px] font-extrabold tracking-tight shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">KYP</span>
           <span class="tracking-tight hidden sm:inline">Know Your Protocol</span>
         </a>
         <div class="flex-1 min-w-0 max-w-md">
@@ -75,37 +87,70 @@ const navLink = (path: string) =>
           <a href="/" class={navLink('/')}>Protocols</a>
           <a href="/notes" class={navLink('/notes')}>Notes</a>
           <a href="/about" class={`hidden sm:inline-block ${navLink('/about')}`}>About</a>
-          <a href="https://github.com/mart1n2/kyp" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition-colors hidden sm:inline-flex items-center gap-1.5">
+          <a href="https://github.com/mart1n2/kyp" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-md text-ink-3 hover:text-ink hover:bg-ink/5 transition-colors hidden sm:inline-flex items-center gap-1.5">
             <span>GitHub</span>
             <span aria-hidden="true" class="text-xs opacity-70">↗</span>
           </a>
+          <button
+            id="theme-toggle"
+            type="button"
+            aria-label="Toggle color theme"
+            class="p-2 rounded-md text-ink-3 hover:text-ink hover:bg-ink/5 transition-colors"
+          >
+            <!-- sun: shown in dark mode (click → light) -->
+            <svg class="theme-icon-sun w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            </svg>
+            <!-- moon: shown in light mode (click → dark) -->
+            <svg class="theme-icon-moon w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </button>
         </div>
       </nav>
     </header>
     <main id="main" class="container mx-auto px-4 py-10 relative">
       <slot />
     </main>
-    <footer class="border-t border-white/5 bg-slate-950/50 mt-20">
+    <footer class="border-t border-line bg-page/50 mt-20">
       <div class="container mx-auto px-4 py-10">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-5">
-          <a href="/" class="flex items-center gap-2.5 font-bold text-slate-200 hover:text-blue-300 transition-colors">
-            <span class="inline-flex w-6 h-6 items-center justify-center rounded-md bg-gradient-to-br from-blue-500/25 to-indigo-500/15 ring-1 ring-blue-400/40 text-blue-200 text-[10px] font-extrabold tracking-tight">KYP</span>
+          <a href="/" class="flex items-center gap-2.5 font-bold text-ink-2 hover:text-accent-2 transition-colors">
+            <span class="inline-flex w-6 h-6 items-center justify-center rounded-md bg-gradient-to-br from-accent/25 to-indigo-500/15 ring-1 ring-accent/40 text-accent-2 text-[10px] font-extrabold tracking-tight">KYP</span>
             <span class="text-sm tracking-tight">Know Your Protocol</span>
           </a>
-          <nav aria-label="Footer" class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-slate-400">
-            <a href="/" class="hover:text-white transition-colors">Protocols</a>
-            <a href="/notes" class="hover:text-white transition-colors">Notes</a>
-            <a href="/about" class="hover:text-white transition-colors">About</a>
-            <a href="/rss.xml" class="hover:text-white transition-colors">RSS</a>
-            <a href="https://github.com/mart1n2/kyp" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">GitHub ↗</a>
+          <nav aria-label="Footer" class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-ink-3">
+            <a href="/" class="hover:text-ink transition-colors">Protocols</a>
+            <a href="/notes" class="hover:text-ink transition-colors">Notes</a>
+            <a href="/about" class="hover:text-ink transition-colors">About</a>
+            <a href="/rss.xml" class="hover:text-ink transition-colors">RSS</a>
+            <a href="https://github.com/mart1n2/kyp" target="_blank" rel="noopener noreferrer" class="hover:text-ink transition-colors">GitHub ↗</a>
           </nav>
         </div>
-        <p class="text-xs mt-8 text-slate-500 max-w-2xl mx-auto leading-relaxed text-center">
+        <p class="text-xs mt-8 text-ink-4 max-w-2xl mx-auto leading-relaxed text-center">
           This site presents technical audit findings and protocol metadata only. It does not constitute
           financial, investment, legal, or tax advice, and does not endorse any protocol. Smart-contract
           security is dynamic and assessments may be incomplete or out of date. Use at your own risk.
         </p>
       </div>
     </footer>
+    <script>
+      const toggle = document.getElementById('theme-toggle');
+      const apply = (t: string) => { document.documentElement.dataset.theme = t; };
+
+      toggle?.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        apply(next);
+        try { localStorage.setItem('theme', next); } catch {}
+      });
+
+      // Until the user picks explicitly, follow live OS theme changes.
+      matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+        let stored = null;
+        try { stored = localStorage.getItem('theme'); } catch {}
+        if (stored !== 'light' && stored !== 'dark') apply(e.matches ? 'light' : 'dark');
+      });
+    </script>
   </body>
 </html>

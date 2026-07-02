@@ -5,7 +5,7 @@
 
 <div id="search-container" class="relative w-full max-w-md">
   <div class="relative">
-    <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-slate-500" aria-hidden="true">
+    <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-ink-4" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-3.6-3.6"></path></svg>
     </span>
     <input
@@ -18,14 +18,14 @@
       autocomplete="off"
       spellcheck="false"
       placeholder="Search reports, protocols, notes…"
-      class="w-full pl-8 pr-12 py-1.5 bg-slate-900/60 border border-slate-700 rounded-md text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:bg-slate-900"
+      class="w-full pl-8 pr-12 py-1.5 bg-surface/60 border border-line-2 rounded-md text-sm text-ink placeholder-ink-4 focus:outline-none focus:border-accent focus:bg-surface"
     />
-    <kbd id="search-shortcut-hint" class="pointer-events-none absolute inset-y-0 right-2 my-auto h-5 px-1.5 hidden sm:inline-flex items-center text-[10px] font-mono text-slate-500 bg-slate-800 border border-slate-700 rounded">⌘K</kbd>
+    <kbd id="search-shortcut-hint" class="pointer-events-none absolute inset-y-0 right-2 my-auto h-5 px-1.5 hidden sm:inline-flex items-center text-[10px] font-mono text-ink-3 bg-ink/5 border border-line-2 rounded">⌘K</kbd>
   </div>
   <div
     id="pagefind-search"
     role="listbox"
-    class="absolute z-50 w-[min(28rem,calc(100vw-2rem))] right-0 mt-1.5 bg-slate-900 border border-slate-700 rounded-md shadow-2xl hidden max-h-[28rem] overflow-y-auto"
+    class="absolute z-50 w-[min(28rem,calc(100vw-2rem))] right-0 mt-1.5 bg-surface border border-line-2 rounded-md shadow-2xl hidden max-h-[28rem] overflow-y-auto"
   ></div>
 </div>
 
@@ -41,9 +41,9 @@
   var lastQuery = '';
 
   var TYPE_BADGE = {
-    report:   { label: 'REPORT',   cls: 'bg-blue-500/15 text-blue-300 border-blue-500/30' },
-    protocol: { label: 'PROTOCOL', cls: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30' },
-    note:     { label: 'NOTE',     cls: 'bg-slate-500/15 text-slate-300 border-slate-500/30' },
+    report:   { label: 'REPORT',   cls: 'bg-accent/15 text-accent-2 border-accent/30' },
+    protocol: { label: 'PROTOCOL', cls: 'bg-ok/15 text-ok border-ok/30' },
+    note:     { label: 'NOTE',     cls: 'bg-ink/10 text-ink-2 border-line-2' },
   };
 
   function escapeHtml(s) {
@@ -91,7 +91,7 @@
   }
 
   function setMessage(html) {
-    dropdown.innerHTML = '<div class="p-3 text-sm text-slate-400">' + html + '</div>';
+    dropdown.innerHTML = '<div class="p-3 text-sm text-ink-3">' + html + '</div>';
     setOpen(true);
   }
 
@@ -102,7 +102,7 @@
     }
     var html = items.map(function(item, i) {
       var type = (item.meta && item.meta.type) || 'page';
-      var badge = TYPE_BADGE[type] || { label: type.toUpperCase(), cls: 'bg-slate-500/15 text-slate-300 border-slate-500/30' };
+      var badge = TYPE_BADGE[type] || { label: type.toUpperCase(), cls: 'bg-ink/10 text-ink-2 border-line-2' };
       var protocol = item.meta && item.meta.protocol ? escapeHtml(item.meta.protocol) : '';
       var chain = item.meta && item.meta.chain ? escapeHtml(item.meta.chain) : '';
       var title = escapeHtml(item.meta && item.meta.title ? item.meta.title : 'Untitled');
@@ -112,13 +112,13 @@
       return (
         '<a href="' + escapeHtml(item.url) + '" data-result-index="' + i + '" ' +
           'id="search-result-' + i + '" role="option" aria-selected="false" ' +
-          'class="search-result block px-3 py-2.5 border-b border-slate-800 last:border-0 hover:bg-slate-800/60 focus:bg-slate-800 focus:outline-none">' +
+          'class="search-result block px-3 py-2.5 border-b border-line last:border-0 hover:bg-ink/5 focus:bg-ink/10 focus:outline-none">' +
           '<div class="flex items-center gap-2 mb-0.5">' +
             '<span class="inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold tracking-wider rounded border ' + badge.cls + '">' + badge.label + '</span>' +
-            (context ? '<span class="text-[11px] text-slate-500">' + context + '</span>' : '') +
+            (context ? '<span class="text-[11px] text-ink-4">' + context + '</span>' : '') +
           '</div>' +
-          '<div class="text-sm font-medium text-slate-100 leading-snug">' + title + '</div>' +
-          (excerpt ? '<div class="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">' + excerpt + '</div>' : '') +
+          '<div class="text-sm font-medium text-ink leading-snug">' + title + '</div>' +
+          (excerpt ? '<div class="text-xs text-ink-3 mt-1 leading-relaxed line-clamp-2">' + excerpt + '</div>' : '') +
         '</a>'
       );
     }).join('');
@@ -131,11 +131,11 @@
     var rows = dropdown.querySelectorAll('.search-result');
     rows.forEach(function(row, i) {
       if (i === activeIndex) {
-        row.classList.add('bg-slate-800');
+        row.classList.add('bg-ink/10');
         row.setAttribute('aria-selected', 'true');
         row.scrollIntoView({ block: 'nearest' });
       } else {
-        row.classList.remove('bg-slate-800');
+        row.classList.remove('bg-ink/10');
         row.setAttribute('aria-selected', 'false');
       }
     });
@@ -161,7 +161,7 @@
       });
     }).catch(function(err) {
       if (err && err.message === 'unavailable') {
-        setMessage('Search available after <code class="text-slate-300">npm run build</code>.');
+        setMessage('Search available after <code class="text-ink-2">npm run build</code>.');
       } else {
         setMessage('Search unavailable.');
       }

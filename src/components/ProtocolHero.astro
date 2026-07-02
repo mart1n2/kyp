@@ -42,11 +42,11 @@ const {
 } = Astro.props;
 
 const gateStyle: Record<string, { ring: string; text: string; label: string; sub: string }> = {
-  Pass:         { ring: 'ring-green-500/40',  text: 'text-green-300',  label: 'PASS',         sub: 'No deal breakers triggered' },
-  Conditional:  { ring: 'ring-yellow-500/40', text: 'text-yellow-300', label: 'CONDITIONAL',  sub: 'Passed with material caveats' },
-  Watchlist:    { ring: 'ring-blue-500/40',   text: 'text-blue-300',   label: 'WATCHLIST',    sub: 'Open concerns flagged for monitoring' },
-  Fail:         { ring: 'ring-red-500/40',    text: 'text-red-300',    label: 'FAIL',         sub: `${failedDealBreakers} of ${totalDealBreakers} deal breakers failed` },
-  Inconclusive: { ring: 'ring-slate-500/40',  text: 'text-slate-300',  label: 'INCONCLUSIVE', sub: 'Assessment incomplete' },
+  Pass:         { ring: 'ring-ok/40',     text: 'text-ok',  label: 'PASS',         sub: 'No deal breakers triggered' },
+  Conditional:  { ring: 'ring-warn/40',   text: 'text-warn', label: 'CONDITIONAL',  sub: 'Passed with material caveats' },
+  Watchlist:    { ring: 'ring-info/40',   text: 'text-info',   label: 'WATCHLIST',    sub: 'Open concerns flagged for monitoring' },
+  Fail:         { ring: 'ring-danger/40', text: 'text-danger',    label: 'FAIL',         sub: `${failedDealBreakers} of ${totalDealBreakers} deal breakers failed` },
+  Inconclusive: { ring: 'ring-line-2',    text: 'text-ink-2',  label: 'INCONCLUSIVE', sub: 'Assessment incomplete' },
 };
 const gate = gateStyle[dealBreakerGate] ?? gateStyle.Inconclusive;
 
@@ -57,14 +57,14 @@ const typeLine = [type, subtype ? `(${subtype})` : ''].filter(Boolean).join(' ')
 ---
 
 <header class="mb-6">
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-wider text-slate-500 mb-1">
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-wider text-ink-4 mb-1">
     <span>{chain}</span>
     {typeLine && (<><span aria-hidden="true">·</span><span>{typeLine}</span></>)}
     {tvlDisplay && (<><span aria-hidden="true">·</span><span>TVL {tvlDisplay}</span></>)}
   </div>
   <h1 class="text-3xl sm:text-4xl font-bold mb-2">{protocol}</h1>
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-400">
-    <span>Audited {auditDate}{hasAge && <span class="text-slate-500"> · <RelativeAge date={auditDate} /></span>}</span>
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-3">
+    <span>Audited {auditDate}{hasAge && <span class="text-ink-4"> · <RelativeAge date={auditDate} /></span>}</span>
     {complexityTier && (<><span aria-hidden="true">·</span><span>Tier: {complexityTier}</span></>)}
   </div>
 </header>
@@ -73,62 +73,62 @@ const typeLine = [type, subtype ? `(${subtype})` : ''].filter(Boolean).join(' ')
   <div class={`kyp-kpi ring-1 ${gate.ring}`}>
     <div class="kyp-label">Deal Breaker Gate</div>
     <div class={`text-2xl font-extrabold mt-1.5 tracking-tight ${gate.text}`}>{gate.label}</div>
-    <div class="text-xs text-slate-400 mt-1">{gate.sub}</div>
+    <div class="text-xs text-ink-3 mt-1">{gate.sub}</div>
   </div>
   <div class="kyp-kpi">
     <div class="kyp-label">Score</div>
     <div class="flex items-baseline gap-2 mt-1.5">
       <span class={`text-2xl font-extrabold tracking-tight font-mono ${scoreTextClass(securityScore)}`}>{securityScore}</span>
-      <span class="text-sm text-slate-500">/100</span>
+      <span class="text-sm text-ink-4">/100</span>
     </div>
-    <div class="text-xs text-slate-400 mt-1">Grade <span class="text-slate-200 font-semibold">{securityGrade}</span></div>
+    <div class="text-xs text-ink-3 mt-1">Grade <span class="text-ink-2 font-semibold">{securityGrade}</span></div>
   </div>
   <div class="kyp-kpi">
     <div class="kyp-label">Risk Level</div>
     <div class={`text-2xl font-extrabold mt-1.5 tracking-tight ${riskTextClass(riskLevel)}`}>{riskLevel}</div>
-    <div class="text-xs text-slate-400 mt-1">Aggregate finding</div>
+    <div class="text-xs text-ink-3 mt-1">Aggregate finding</div>
   </div>
 </section>
 
 <section class="flex flex-wrap gap-2 mb-6 text-xs">
-  <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded border ${failedDealBreakers > 0 ? 'bg-red-900/40 text-red-200 border-red-800' : 'bg-green-900/40 text-green-200 border-green-800'}`}>
+  <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded border ${failedDealBreakers > 0 ? 'bg-danger/10 text-danger border-danger/30' : 'bg-ok/10 text-ok border-ok/30'}`}>
     <span class="font-semibold">{failedDealBreakers}</span>
     <span class="opacity-80">deal-breaker FAIL{failedDealBreakers === 1 ? '' : 's'}</span>
   </span>
-  <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded border ${openIssuesP0 > 0 ? 'bg-orange-900/40 text-orange-200 border-orange-800' : 'bg-slate-800 text-slate-300 border-slate-700'}`}>
+  <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded border ${openIssuesP0 > 0 ? 'bg-hot/10 text-hot border-hot/30' : 'bg-ink/5 text-ink-2 border-line-2'}`}>
     <span class="font-semibold">{openIssuesTotal}</span>
     <span class="opacity-80">open issue{openIssuesTotal === 1 ? '' : 's'}</span>
-    {openIssuesP0 > 0 && <span class="ml-1 px-1.5 py-0.5 rounded bg-orange-950/60 border border-orange-700/60 text-orange-200 font-semibold">P0: {openIssuesP0}</span>}
+    {openIssuesP0 > 0 && <span class="ml-1 px-1.5 py-0.5 rounded bg-hot/15 border border-hot/40 text-hot font-semibold">P0: {openIssuesP0}</span>}
   </span>
-  <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded border ${eoaSurfacesCount > 0 ? 'bg-red-900/40 text-red-200 border-red-800' : 'bg-slate-800 text-slate-300 border-slate-700'}`}>
+  <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded border ${eoaSurfacesCount > 0 ? 'bg-danger/10 text-danger border-danger/30' : 'bg-ink/5 text-ink-2 border-line-2'}`}>
     <span class="font-semibold">{eoaSurfacesCount}</span>
     <span class="opacity-80">EOA surface{eoaSurfacesCount === 1 ? '' : 's'}</span>
   </span>
-  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border bg-slate-800 text-slate-300 border-slate-700">
+  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border bg-ink/5 text-ink-2 border-line-2">
     <span class="font-semibold">{contractsCount}</span>
     <span class="opacity-80">contract{contractsCount === 1 ? '' : 's'}</span>
   </span>
-  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border bg-slate-800 text-slate-300 border-slate-700">
+  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border bg-ink/5 text-ink-2 border-line-2">
     <span class="font-semibold">{auditsCount}</span>
     <span class="opacity-80">audit{auditsCount === 1 ? '' : 's'}</span>
-    {auditsTier1Count > 0 && <span class="ml-1 px-1.5 py-0.5 rounded bg-green-950/60 border border-green-700/60 text-green-200 font-semibold">{auditsTier1Count} Tier-1</span>}
+    {auditsTier1Count > 0 && <span class="ml-1 px-1.5 py-0.5 rounded bg-ok/15 border border-ok/40 text-ok font-semibold">{auditsTier1Count} Tier-1</span>}
   </span>
 </section>
 
 {(findingsSummary || keyFindings.length > 0) && (
   <section id="findings" class="kyp-panel mb-6 scroll-mt-28">
     <h2 class="text-xl font-bold mb-3">Findings</h2>
-    {findingsSummary && <p class="text-slate-300 leading-relaxed mb-4">{findingsSummary}</p>}
+    {findingsSummary && <p class="text-ink-2 leading-relaxed mb-4">{findingsSummary}</p>}
     {keyFindings.length > 0 && (
       <ul class="space-y-2">
         {keyFindings.map(finding => (
-          <li class="flex items-start gap-2 text-slate-300">
-            <span class="text-blue-400 mt-1.5 text-xs">▸</span>
+          <li class="flex items-start gap-2 text-ink-2">
+            <span class="text-accent mt-1.5 text-xs">▸</span>
             <span>{finding}</span>
           </li>
         ))}
       </ul>
     )}
-    <p class="text-xs text-slate-500 mt-4">Technical findings only — not financial advice.</p>
+    <p class="text-xs text-ink-4 mt-4">Technical findings only — not financial advice.</p>
   </section>
 )}

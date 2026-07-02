@@ -20,7 +20,7 @@ export async function initPagefind() {
       const results = await pagefind.search(query);
       
       if (results.length === 0) {
-        searchResults.innerHTML = '<div class="p-4 text-slate-400">No results found</div>';
+        searchResults.innerHTML = '<div class="p-4 text-ink-3">No results found</div>';
         searchResults.classList.remove('hidden');
         return;
       }
@@ -28,9 +28,9 @@ export async function initPagefind() {
       const html = await Promise.all(results.map(async (r: any) => {
         const data = await r.data();
         return `
-          <a href="${data.url}" class="block p-3 hover:bg-slate-700 border-b border-slate-700 last:border-0">
+          <a href="${data.url}" class="block p-3 hover:bg-ink/5 border-b border-line-2 last:border-0">
             <div class="font-semibold">${data.meta.title}</div>
-            <div class="text-sm text-slate-400 mt-1">${data.excerpt?.substring(0, 100)}...</div>
+            <div class="text-sm text-ink-3 mt-1">${data.excerpt?.substring(0, 100)}...</div>
           </a>
         `;
       }));

@@ -19,19 +19,19 @@ const { surfaces, chain = 'Ethereum' } = Astro.props;
 const explorerUrl = explorerUrlFor(chain);
 
 const typeColor: Record<string, string> = {
-  EOA: 'bg-red-900/40 text-red-200 border-red-800',
-  Multisig: 'bg-green-900/40 text-green-200 border-green-800',
-  Governance: 'bg-blue-900/40 text-blue-200 border-blue-800',
-  Timelock: 'bg-purple-900/40 text-purple-200 border-purple-800',
-  Contract: 'bg-slate-800 text-slate-300 border-slate-700',
-  Unknown: 'bg-slate-800 text-slate-400 border-slate-700',
+  EOA: 'bg-danger/10 text-danger border-danger/30',
+  Multisig: 'bg-ok/10 text-ok border-ok/30',
+  Governance: 'bg-info/10 text-info border-info/30',
+  Timelock: 'bg-viol/10 text-viol border-viol/30',
+  Contract: 'bg-ink/5 text-ink-2 border-line-2',
+  Unknown: 'bg-ink/5 text-ink-3 border-line-2',
 };
 
 function formatDelay(hours: number) {
-  if (hours <= 0) return { text: 'Instant', color: 'text-red-300' };
-  if (hours < 24)  return { text: `${hours}h`, color: 'text-yellow-300' };
-  if (hours < 48)  return { text: `${hours}h`, color: 'text-yellow-200' };
-  return { text: `${hours}h`, color: 'text-green-300' };
+  if (hours <= 0) return { text: 'Instant', color: 'text-danger' };
+  if (hours < 24)  return { text: `${hours}h`, color: 'text-warn' };
+  if (hours < 48)  return { text: `${hours}h`, color: 'text-warn' };
+  return { text: `${hours}h`, color: 'text-ok' };
 }
 
 function shortAddr(s: string) {
@@ -44,7 +44,7 @@ function shortAddr(s: string) {
 <section id="trust" class="kyp-panel scroll-mt-28">
   <div class="flex items-baseline justify-between mb-4 flex-wrap gap-2">
     <h2 class="text-xl font-bold">Trust Surfaces</h2>
-    <span class="text-xs text-slate-500">Who can move funds, and how fast</span>
+    <span class="text-xs text-ink-4">Who can move funds, and how fast</span>
   </div>
 
   {surfaces.length > 0 ? (
@@ -53,7 +53,7 @@ function shortAddr(s: string) {
       <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-slate-700 text-slate-400 text-left">
+            <tr class="border-b border-line-2 text-ink-3 text-left">
               <th class="pb-3 pr-4 font-semibold">Surface</th>
               <th class="pb-3 pr-4 font-semibold">Controller</th>
               <th class="pb-3 pr-4 font-semibold">Type</th>
@@ -66,11 +66,11 @@ function shortAddr(s: string) {
               const delay = formatDelay(s.delayHours);
               const cleanAddr = s.controller.match(/0x[a-fA-F0-9]{40}/)?.[0];
               return (
-                <tr class="border-b border-slate-700/60 align-top hover:bg-slate-900/30 transition-colors">
+                <tr class="border-b border-line-2 align-top hover:bg-ink/5 transition-colors">
                   <td class="py-3 pr-4 font-medium">{s.surface}</td>
                   <td class="py-3 pr-4 font-mono text-xs">
                     {cleanAddr ? (
-                      <a href={`${explorerUrl}${cleanAddr}`} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">
+                      <a href={`${explorerUrl}${cleanAddr}`} target="_blank" rel="noopener noreferrer" class="text-accent hover:text-accent-2">
                         {s.controller} ↗
                       </a>
                     ) : (
@@ -83,7 +83,7 @@ function shortAddr(s: string) {
                     </span>
                   </td>
                   <td class={`py-3 pr-4 font-semibold whitespace-nowrap ${delay.color}`}>{delay.text}</td>
-                  <td class="py-3 text-slate-300">{s.worstCase}</td>
+                  <td class="py-3 text-ink-2">{s.worstCase}</td>
                 </tr>
               );
             })}
@@ -99,27 +99,27 @@ function shortAddr(s: string) {
           return (
             <div class="kyp-inset p-4">
               <div class="flex items-start justify-between gap-3 mb-2">
-                <div class="font-medium text-slate-100 leading-snug">{s.surface}</div>
+                <div class="font-medium text-ink leading-snug">{s.surface}</div>
                 <span class={`shrink-0 inline-block px-2 py-0.5 rounded border text-[11px] font-semibold ${typeColor[s.controllerType] ?? typeColor.Unknown}`}>
                   {s.controllerType}{s.multisigConfig ? ` ${s.multisigConfig}` : ''}
                 </span>
               </div>
               <div class="text-xs space-y-1.5">
                 <div class="flex items-center gap-2">
-                  <span class="text-slate-500 w-20 shrink-0">Controller</span>
+                  <span class="text-ink-4 w-20 shrink-0">Controller</span>
                   {cleanAddr ? (
-                    <a href={`${explorerUrl}${cleanAddr}`} target="_blank" rel="noopener noreferrer" class="font-mono text-blue-400 hover:text-blue-300">{shortAddr(s.controller)} ↗</a>
+                    <a href={`${explorerUrl}${cleanAddr}`} target="_blank" rel="noopener noreferrer" class="font-mono text-accent hover:text-accent-2">{shortAddr(s.controller)} ↗</a>
                   ) : (
-                    <span class="font-mono text-slate-300">{s.controller}</span>
+                    <span class="font-mono text-ink-2">{s.controller}</span>
                   )}
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="text-slate-500 w-20 shrink-0">Min delay</span>
+                  <span class="text-ink-4 w-20 shrink-0">Min delay</span>
                   <span class={`font-semibold ${delay.color}`}>{delay.text}</span>
                 </div>
                 <div class="flex items-start gap-2">
-                  <span class="text-slate-500 w-20 shrink-0">Worst case</span>
-                  <span class="text-slate-300">{s.worstCase}</span>
+                  <span class="text-ink-4 w-20 shrink-0">Worst case</span>
+                  <span class="text-ink-2">{s.worstCase}</span>
                 </div>
               </div>
             </div>
@@ -128,6 +128,6 @@ function shortAddr(s: string) {
       </div>
     </>
   ) : (
-    <p class="text-slate-400">No trust-surface data available</p>
+    <p class="text-ink-3">No trust-surface data available</p>
   )}
 </section>

@@ -9,7 +9,10 @@ export default defineConfig({
   integrations: [tailwind(), mdx(), sitemap()],
   markdown: {
     shikiConfig: {
-      theme: 'github-dark',
+      // Both palettes are emitted as CSS variables; global.css activates
+      // one per [data-theme] so code blocks follow the site theme.
+      themes: { light: 'github-light', dark: 'github-dark' },
+      defaultColor: false,
     },
   },
   vite: {
