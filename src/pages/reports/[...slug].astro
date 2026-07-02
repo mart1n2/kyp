@@ -5,7 +5,8 @@ import GateBadge from '../../components/GateBadge.astro';
 import JsonLd from '../../components/JsonLd.astro';
 import { getCollection } from 'astro:content';
 import { renderMarkdown } from '../../utils/render-markdown';
-import { relativeAge } from '../../utils/format';
+import { toIsoDate } from '../../utils/format';
+import RelativeAge from '../../components/RelativeAge.astro';
 
 export async function getStaticPaths() {
   const reports = await getCollection('reports');
@@ -22,7 +23,7 @@ const {
 } = report.data;
 
 const { html: renderedContent, headings } = await renderMarkdown(body);
-const age = relativeAge(auditDate);
+const hasAge = toIsoDate(auditDate) !== null;
 ---
 
 <Layout
@@ -53,7 +54,7 @@ const age = relativeAge(auditDate);
     </div>
     <h1 class="text-3xl sm:text-4xl font-bold mb-2">{protocol}</h1>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-400">
-      <span>Audited {auditDate}{age && <span class="text-slate-500"> · {age}</span>}</span>
+      <span>Audited {auditDate}{hasAge && <span class="text-slate-500"> · <RelativeAge date={auditDate} /></span>}</span>
       <span aria-hidden="true">·</span>
       <GateBadge gate={dealBreakerGate} prefix size="sm" />
     </div>

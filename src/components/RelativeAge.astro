@@ -1,0 +1,30 @@
+---
+import { relativeAge, toIsoDate } from '../utils/format';
+
+// Relative ages ("today", "1w ago") must reflect the visitor's clock, not the
+// build clock — this site is static and only rebuilds on push, so any age
+// rendered at build time freezes in the HTML. The server-rendered text is a
+// no-JS fallback; the script below recomputes it on every page load.
+interface Props {
+  date: string | null | undefined;
+  fallback?: string;
+  class?: string;
+}
+
+const { date, fallback = '—', class: className } = Astro.props;
+const iso = date ? toIsoDate(date) : null;
+---
+
+{iso ? (
+  <time datetime={iso} data-relative-age class={className}>{relativeAge(iso) || fallback}</time>
+) : (
+  <span class={className}>{fallback}</span>
+)}
+
+<script>
+  import { relativeAge } from '../utils/format';
+  for (const el of document.querySelectorAll('time[data-relative-age]')) {
+    const age = relativeAge(el.getAttribute('datetime') ?? '');
+    if (age) el.textContent = age;
+  }
+</script>

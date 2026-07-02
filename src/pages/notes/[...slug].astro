@@ -4,7 +4,7 @@ import NoteKindBadge from '../../components/NoteKindBadge.astro';
 import ReportTOC from '../../components/ReportTOC.astro';
 import JsonLd from '../../components/JsonLd.astro';
 import { getCollection, render } from 'astro:content';
-import { relativeAge } from '../../utils/format';
+import RelativeAge from '../../components/RelativeAge.astro';
 import { compareNotes, isoDate, readingTime } from '../../utils/notes';
 
 export async function getStaticPaths() {
@@ -21,7 +21,6 @@ const { Content, headings } = await render(note);
 const date = isoDate(note.data.date);
 const updated = note.data.updated ? isoDate(note.data.updated) : null;
 const effectiveDate = updated ?? date;
-const age = relativeAge(effectiveDate);
 const readTime = readingTime(note.body ?? '');
 
 // A TOC only earns its column on longer notes.
@@ -91,7 +90,7 @@ const proseClasses = `prose prose-invert prose-slate max-w-3xl
       ) : (
         <time datetime={date} class="font-mono normal-case">{date}</time>
       )}
-      {age && (<><span aria-hidden="true">·</span><span class="normal-case">{age}</span></>)}
+      <span aria-hidden="true">·</span><span class="normal-case"><RelativeAge date={effectiveDate} /></span>
       <span aria-hidden="true">·</span>
       <span class="normal-case">{readTime}</span>
       {note.data.tags.map(tag => (

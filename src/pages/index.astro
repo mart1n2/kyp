@@ -4,7 +4,8 @@ import ProtocolCard from '../components/ProtocolCard.astro';
 import FilterPanel from '../components/FilterPanel.astro';
 import NoteKindBadge from '../components/NoteKindBadge.astro';
 import { getCollection } from 'astro:content';
-import { parseAuditDate, relativeAge } from '../utils/format';
+import RelativeAge from '../components/RelativeAge.astro';
+import { parseAuditDate } from '../utils/format';
 import { compareNotes, isoDate } from '../utils/notes';
 
 const reports = await getCollection('reports');
@@ -31,11 +32,8 @@ const totalProtocols = protocols.length;
 const chainsCovered = new Set(protocols.map(p => p.data.chain)).size;
 const failingGates = protocols.filter(p => p.data.dealBreakerGate === 'Fail').length;
 
-const latestAuditTimestamp = protocols
-  .map(p => parseAuditDate(p.data.auditDate)?.getTime() ?? 0)
-  .reduce((a, b) => Math.max(a, b), 0);
-const latestAuditDate = latestAuditTimestamp ? new Date(latestAuditTimestamp).toISOString().slice(0, 10) : null;
-const latestAuditAge = latestAuditDate ? relativeAge(latestAuditDate) : null;
+// protocols is sorted newest-audit-first, so the latest audit is the head.
+const latestAuditDate = protocols[0]?.data.auditDate ?? null;
 
 // Per-card precomputed stats
 const cards = protocols.map(report => {
@@ -78,7 +76,7 @@ const cards = protocols.map(report => {
       </div>
       <div class="kyp-kpi">
         <div class="kyp-label">Latest Audit</div>
-        <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight">{latestAuditAge ?? '—'}</div>
+        <div class="text-3xl font-extrabold mt-1.5 text-slate-50 tracking-tight"><RelativeAge date={latestAuditDate} /></div>
       </div>
     </div>
   </section>

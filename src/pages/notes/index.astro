@@ -2,7 +2,7 @@
 import Layout from '../../components/Layout.astro';
 import NoteKindBadge from '../../components/NoteKindBadge.astro';
 import { getCollection } from 'astro:content';
-import { relativeAge } from '../../utils/format';
+import RelativeAge from '../../components/RelativeAge.astro';
 import { compareNotes, isoDate } from '../../utils/notes';
 
 const notes = (await getCollection('notes', ({ data }) => !data.draft))
@@ -116,7 +116,7 @@ const researchCount = notes.filter(n => n.data.kind === 'research').length;
             {note.data.relatedProtocol && (
               <span class="ml-auto text-slate-500">↳ <span class="text-blue-400">{note.data.relatedProtocol}</span></span>
             )}
-            <span class="text-slate-600">· {relativeAge(isoDate(note.data.updated ?? note.data.date))}</span>
+            <span class="text-slate-600">· <RelativeAge date={isoDate(note.data.updated ?? note.data.date)} /></span>
           </div>
         </a>
       </li>

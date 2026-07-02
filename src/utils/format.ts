@@ -7,6 +7,19 @@ export function parseAuditDate(dateStr: string): Date | null {
   return isNaN(fallback.getTime()) ? null : fallback;
 }
 
+// String-level conversion (no Date round-trip) so the result never shifts a
+// day across timezones — used for <time datetime> attributes.
+export function toIsoDate(dateStr: string): string | null {
+  if (!dateStr) return null;
+  const iso = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (iso) return iso[1];
+  const m = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) return `${m[3]}-${m[1]}-${m[2]}`;
+  const d = parseAuditDate(dateStr);
+  if (!d) return null;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function daysSince(dateStr: string, now = Date.now()): number | null {
   const d = parseAuditDate(dateStr);
   if (!d) return null;
