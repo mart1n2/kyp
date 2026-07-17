@@ -1,98 +1,108 @@
 # Know Your Protocol (KYP)
 
-> DeFi Protocol Permission Analysis & Audit Report Database
+> A public, technical reference for DeFi protocol permissions, trust assumptions, and audit findings.
 
-**🔗 [kyp.one](https://kyp.one)** | [Docs](https://github.com/mart1n2/kyp)
+[![Deploy to GitHub Pages](https://github.com/mart1n2/kyp/actions/workflows/deploy.yml/badge.svg)](https://github.com/mart1n2/kyp/actions/workflows/deploy.yml)
+[![Astro](https://img.shields.io/badge/Astro-5-BC52EE?logo=astro&logoColor=white)](https://astro.build/)
 
-## What is KYP?
+**[Explore KYP](https://www.kyp.one)** · **[Read the research notes](https://www.kyp.one/notes)**
 
-KYP is a static website that helps DeFi investors and protocol managers assess protocol risk before interacting with or investing in smart contracts. It displays:
+## What KYP does
 
-- **Permission Dashboard** — Who controls what, and how (EOA vs Multisig vs Governance)
-- **Risk Summary & Deal Breakers** — Critical security findings at a glance
-- **Contract Inventory** — All protocol contracts with verification status
-- **Full Audit Reports** — Searchable, organized audit reports by protocol
+KYP turns DeFi security assessments into structured, searchable protocol profiles. It is designed for security engineers, researchers, fund analysts, and protocol contributors who need to understand not only whether a protocol was audited, but also who can change it and how quickly those powers can affect user funds.
 
-## Tech Stack
+Each profile brings together:
 
-- **[Astro](https://astro.build/)** — Static site generation
-- **[Pagefind](https://pagefind.app/)** — Client-side full-text search
-- **[TailwindCSS](https://tailwindcss.com/)** — Styling
-- **[GitHub Actions](https://github.com/features/actions)** — CI/CD deployment
-- **GitHub Pages** — Hosting with custom domain `kyp.one`
+- **Security assessment** — score, grade, risk level, deal-breaker gate, and key findings
+- **Trust surfaces** — upgrade authority, privileged roles, timelocks, multisigs, and worst-case impact
+- **Contract inventory** — deployed addresses, contract types, compiler versions, and verification status
+- **Open issues** — severity, impact, remediation priority, and expected timeline
+- **Audit history** — prior reviews, scope, findings, and source reports
+- **Research notes** — incident analyses, technical research, and longer-form essays
 
-## Project Structure
+KYP is descriptive, not advisory. Every entry is a point-in-time technical assessment and should be read alongside its full report and primary sources.
 
+## How the site is organized
+
+```text
+src/
+├── content/
+│   ├── reports/
+│   │   └── <protocol>/
+│   │       ├── <report>.md
+│   │       └── <report>.metadata.json
+│   └── notes/
+│       └── <note>.md
+├── components/               # Dashboard, report, navigation, and badge UI
+├── pages/
+│   ├── index.astro            # Searchable protocol dashboard
+│   ├── protocols/[slug].astro # Protocol profile and assessment history
+│   ├── reports/[...slug].astro
+│   └── notes/                 # Research index and note pages
+├── styles/
+└── utils/
+
+schemas/report-metadata.json   # Public metadata contract
+src/content.config.ts          # Runtime content validation
+postbuild.mjs                  # Pagefind search-index generation
 ```
-kyp/
-├── src/
-│   ├── content/
-│   │   └── reports/           # Markdown reports organized by protocol folder
-│   │       └── saturn-credit/
-│   │           ├── saturn-ethereum-2026-04-15.md
-│   │           └── saturn-ethereum-2026-04-15.metadata.json
-│   ├── pages/
-│   │   ├── index.astro        # Homepage — protocol list + filters + search
-│   │   ├── protocols/[slug].astro  # Protocol permission dashboard
-│   │   └── reports/[...slug].astro # Full audit report page
-│   └── components/
-│       ├── DealBreakerList.astro
-│       ├── PermissionTable.astro
-│       ├── ContractList.astro
-│       └── ...
-├── public/
-│   ├── CNAME                  # Custom domain (kyp.one)
-│   └── robots.txt
-├── .github/workflows/
-│   └── deploy.yml             # GitHub Pages auto-deploy
-└── package.json
-```
 
-## Adding a New Report
+Reports use a paired-file model: the Markdown file contains the full assessment, while the adjacent metadata JSON powers the dashboard and protocol pages. Notes use validated Markdown frontmatter and support `incident`, `research`, and `essay` types.
 
-1. Create a folder under `src/content/reports/` with the protocol slug (e.g., `src/content/reports/my-protocol/`)
-2. Place the audit report markdown file inside
-3. Generate the metadata JSON — ask an AI agent to extract structured metadata from the report and create `report-name.metadata.json`
-4. Push to `main` branch — GitHub Actions will auto-deploy
+## Add a report
 
-## Metadata JSON Format
+1. Create `src/content/reports/<protocol-slug>/`.
+2. Add the full report as `<report-slug>.md`.
+3. Add `<report-slug>.metadata.json` beside it.
+4. Run `npm test` and `npm run build`.
+5. Open the generated pages locally with `npm run preview`.
 
-Each report needs a companion `.metadata.json` file:
+Minimal metadata:
 
 ```json
 {
-  "slug": "report-filename-without-ext",
+  "slug": "protocol-ethereum-2026-07-17",
   "protocol": "Protocol Name",
   "protocolSlug": "protocol-name",
   "chain": "Ethereum",
-  "auditDate": "04/15/2026",
-  "auditor": "Auditor Name",
-  "securityScore": 0,
-  "securityGrade": "F",
-  "riskLevel": "Critical",
-  "dealBreakers": "3 Failed — REJECT",
-  "dealBreakerDetails": [ ... ],
-  "accessControlRoles": [ ... ],
-  "contracts": [ ... ],
-  "keyFindings": [ ... ],
-  "securityAssessment": "..."
+  "auditDate": "07/17/2026",
+  "securityScore": 72,
+  "securityGrade": "B",
+  "riskLevel": "Medium",
+  "dealBreakers": "0 Failed — Gate cleared",
+  "dealBreakerGate": "Conditional"
 }
 ```
 
-## Local Development
+See [`schemas/report-metadata.json`](schemas/report-metadata.json) for the public schema and [`src/content.config.ts`](src/content.config.ts) for the fields enforced at build time.
+
+## Local development
+
+Requires Node.js 24 and npm.
 
 ```bash
-npm install
-npm run dev        # Start dev server at http://localhost:4321
-npm run build      # Build static site + Pagefind index
-npm run preview    # Preview built site
-npm test           # Run metadata validation tests
+npm ci
+npm run dev
 ```
+
+The development server starts at `http://localhost:4321`.
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Astro development server |
+| `npm test` | Validate metadata and utility behavior with Vitest |
+| `npm run build` | Build the static site and generate the Pagefind index |
+| `npm run preview` | Preview the production build locally |
+
+## Stack and deployment
+
+- [Astro](https://astro.build/) for static generation and content collections
+- [Tailwind CSS](https://tailwindcss.com/) for styling
+- [Pagefind](https://pagefind.app/) for client-side full-text search
+- GitHub Actions and GitHub Pages for deployment
+
+Pushes to `main` run the Pages workflow and deploy the generated `dist/` directory to [www.kyp.one](https://www.kyp.one).
 
 ## Disclaimer
 
-> **For technical reference only. This does not constitute financial advice. Use at your own risk.**
-
-## License
-
-MIT
+KYP provides technical audit findings and protocol metadata only. It does not constitute financial, investment, legal, or tax advice, and it does not endorse any protocol. Smart-contract systems change over time; assessments may be incomplete or outdated. Verify current on-chain state and use protocols at your own risk.
