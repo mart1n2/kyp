@@ -84,8 +84,8 @@ const navLink = (path: string) =>
           <SearchBar />
         </div>
         <div class="flex items-center gap-1 text-sm shrink-0">
-          <a href="/" class={navLink('/')}>Protocols</a>
           <a href="/notes" class={navLink('/notes')}>Notes</a>
+          <a href="/protocols" class={navLink('/protocols')}>Protocols</a>
           <a href="/about" class={`hidden sm:inline-block ${navLink('/about')}`}>About</a>
           <a href="https://github.com/mart1n2/kyp" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-md text-ink-3 hover:text-ink hover:bg-ink/5 transition-colors hidden sm:inline-flex items-center gap-1.5">
             <span>GitHub</span>
@@ -121,8 +121,8 @@ const navLink = (path: string) =>
             <span class="text-sm tracking-tight">Know Your Protocol</span>
           </a>
           <nav aria-label="Footer" class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-ink-3">
-            <a href="/" class="hover:text-ink transition-colors">Protocols</a>
             <a href="/notes" class="hover:text-ink transition-colors">Notes</a>
+            <a href="/protocols" class="hover:text-ink transition-colors">Protocols</a>
             <a href="/about" class="hover:text-ink transition-colors">About</a>
             <a href="/rss.xml" class="hover:text-ink transition-colors">RSS</a>
             <a href="https://github.com/mart1n2/kyp" target="_blank" rel="noopener noreferrer" class="hover:text-ink transition-colors">GitHub ↗</a>

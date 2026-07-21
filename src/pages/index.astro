@@ -1,18 +1,20 @@
 ---
 import Layout from '../components/Layout.astro';
 import ProtocolCard from '../components/ProtocolCard.astro';
-import FilterPanel from '../components/FilterPanel.astro';
 import NoteKindBadge from '../components/NoteKindBadge.astro';
 import { getCollection } from 'astro:content';
-import RelativeAge from '../components/RelativeAge.astro';
 import { parseAuditDate } from '../utils/format';
-import { compareNotes, isoDate } from '../utils/notes';
+import { compareNotes, isoDate, readingTime } from '../utils/notes';
 
+// --- Notes (the lead content) ---------------------------------------------
+const allNotes = (await getCollection('notes', ({ data }) => !data.draft))
+  .sort(compareNotes);
+const notesCount = allNotes.length;
+const featured = allNotes[0] ?? null;
+const sideNotes = allNotes.slice(1, 4); // one big + three small
+
+// --- Protocols (secondary section, same card rhythm) ----------------------
 const reports = await getCollection('reports');
-const recentNotes = (await getCollection('notes', ({ data }) => !data.draft))
-  .sort(compareNotes)
-  .slice(0, 3);
-
 const protocolMap = new Map();
 for (const report of reports) {
   const pSlug = report.data.protocolSlug;
@@ -20,91 +22,143 @@ for (const report of reports) {
     protocolMap.set(pSlug, report);
   }
 }
-
 const protocols = Array.from(protocolMap.values()).sort((a, b) => {
   const ta = parseAuditDate(a.data.auditDate)?.getTime() ?? 0;
   const tb = parseAuditDate(b.data.auditDate)?.getTime() ?? 0;
   return tb - ta || a.data.protocol.localeCompare(b.data.protocol);
 });
 
-// Header KPIs
 const totalProtocols = protocols.length;
 const chainsCovered = new Set(protocols.map(p => p.data.chain)).size;
 const failingGates = protocols.filter(p => p.data.dealBreakerGate === 'Fail').length;
 
-// protocols is sorted newest-audit-first, so the latest audit is the head.
-const latestAuditDate = protocols[0]?.data.auditDate ?? null;
-
-// Per-card precomputed stats
-const cards = protocols.map(report => {
+const PROTOCOLS_SHOWN = 6;
+const protocolCards = protocols.slice(0, PROTOCOLS_SHOWN).map(report => {
   const data = report.data;
-  const failedDealBreakers = (data.dealBreakerDetails ?? []).filter((d: any) => d.status === 'FAIL').length;
-  const eoaSurfaces = (data.adminControlMatrix ?? []).filter((s: any) => s.controllerType === 'EOA').length;
   return {
     data,
-    failedDealBreakers,
-    eoaSurfaces,
+    failedDealBreakers: (data.dealBreakerDetails ?? []).filter((d: any) => d.status === 'FAIL').length,
+    eoaSurfaces: (data.adminControlMatrix ?? []).filter((s: any) => s.controllerType === 'EOA').length,
     contractsCount: (data.contracts ?? []).length,
     auditsCount: (data.auditHistory ?? []).length,
   };
 });
+
+const kindClassOf = (kind: string) =>
+  kind === 'incident' ? 'is-incident' : kind === 'research' ? 'is-research' : '';
+
+const dateParts = (data: { date: Date; updated?: Date }) => {
+  const origDate = isoDate(data.date);
+  const updatedDate = data.updated ? isoDate(data.updated) : null;
+  return {
+    effectiveDate: updatedDate ?? origDate,
+    origDate,
+    isUpdated: updatedDate !== null && updatedDate !== origDate,
+  };
+};
 ---
 
-<Layout title="Know Your Protocol — DeFi Permission Analysis" description="Permission analysis and audit findings for DeFi protocols. Technical reference only — not financial advice.">
-  <section class="mb-10">
-    <div class="inline-flex items-center gap-2 mb-3 px-2.5 py-1 rounded-full bg-accent/10 border border-accent/20 text-[11px] font-medium text-accent-2 uppercase tracking-wider">
+<Layout title="Know Your Protocol — DeFi Security Research & Notes" description="Incident write-ups, security research, and a structured database of DeFi protocol permissions and audit findings.">
+  <!-- Hero (left-aligned) -->
+  <section class="pt-2 pb-12 max-w-3xl">
+    <div class="inline-flex items-center gap-2 mb-4 px-2.5 py-1 rounded-full bg-accent/10 border border-accent/20 text-[11px] font-medium text-accent-2 uppercase tracking-wider">
       <span class="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(96,165,250,0.8)]"></span>
-      {totalProtocols} protocol{totalProtocols === 1 ? '' : 's'} indexed
+      DeFi security · research & analysis
     </div>
-    <h1 class="text-4xl sm:text-5xl font-extrabold mb-3 tracking-tight bg-gradient-to-br from-ink via-ink to-ink-3 bg-clip-text text-transparent">Know Your Protocol</h1>
-    <p class="text-ink-3 max-w-2xl leading-relaxed">
-      Permission analysis and audit findings for DeFi protocols. Technical reference only — not financial advice.
+    <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight bg-gradient-to-br from-ink via-ink to-ink-3 bg-clip-text text-transparent">Know Your Protocol</h1>
+    <p class="text-lg text-ink-3 leading-relaxed">
+      Incident write-ups, security research, and short essays on DeFi — backed by a structured
+      database of protocol permissions, trust surfaces, and audit findings.
     </p>
-
-    <div class="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div class="kyp-kpi">
-        <div class="kyp-label">Protocols Indexed</div>
-        <div class="text-3xl font-extrabold mt-1.5 text-ink tracking-tight font-mono">{totalProtocols}</div>
-      </div>
-      <div class="kyp-kpi">
-        <div class="kyp-label">Chains Covered</div>
-        <div class="text-3xl font-extrabold mt-1.5 text-ink tracking-tight font-mono">{chainsCovered}</div>
-      </div>
-      <div class="kyp-kpi">
-        <div class="kyp-label">Gate: Fail</div>
-        <div class={`text-3xl font-extrabold mt-1.5 tracking-tight font-mono ${failingGates > 0 ? 'text-danger' : 'text-ink'}`}>{failingGates}</div>
-      </div>
-      <div class="kyp-kpi">
-        <div class="kyp-label">Latest Audit</div>
-        <div class="text-3xl font-extrabold mt-1.5 text-ink tracking-tight"><RelativeAge date={latestAuditDate} /></div>
-      </div>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <a href="#notes" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-accent/15 border border-accent/30 text-accent-2 hover:bg-accent/25 transition-colors text-sm font-medium">
+        Read the notes
+      </a>
+      <a href="/protocols" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-ink/5 border border-line text-ink-2 hover:bg-ink/10 transition-colors text-sm font-medium">
+        Browse the database <span aria-hidden="true" class="opacity-70">→</span>
+      </a>
     </div>
   </section>
 
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
-    <div class="lg:col-span-1">
-      <FilterPanel protocols={protocols} />
-    </div>
-    <div class="lg:col-span-3">
-      <div class="flex items-center justify-between gap-3 mb-3 text-sm text-ink-3">
-        <span id="match-count" aria-live="polite">{totalProtocols} protocol{totalProtocols === 1 ? '' : 's'}</span>
-        <label class="flex items-center gap-2">
-          <span class="text-xs text-ink-4">Sort</span>
-          <select
-            id="sort-select"
-            class="bg-surface/60 border border-line-2 rounded-md text-xs text-ink-2 px-2 py-1.5 focus:outline-none focus:border-accent"
-          >
-            <option value="audit-desc">Newest audit</option>
-            <option value="audit-asc">Oldest audit</option>
-            <option value="score-desc">Highest score first</option>
-            <option value="score-asc">Lowest score first</option>
-            <option value="name">Name A–Z</option>
-          </select>
-        </label>
+  <!-- Latest notes — one big + three small -->
+  {featured && (
+    <section id="notes" class="mb-16 scroll-mt-20">
+      <div class="flex items-end justify-between gap-3 mb-5 pb-3 border-b border-line-2">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight">Latest notes</h2>
+          <p class="text-sm text-ink-4 mt-1">Security research, incident write-ups, and short essays.</p>
+        </div>
+        <a href="/notes" class="text-sm text-accent hover:text-accent-2 shrink-0">All {notesCount} notes →</a>
       </div>
 
-      <div id="protocol-grid" class="grid gap-3">
-        {cards.map(c => (
+      <div class="grid gap-4 lg:grid-cols-[1.618fr_1fr]">
+        {/* Featured (newest) — the big card (golden-ratio width) */}
+        {(() => {
+          const { effectiveDate, origDate, isUpdated } = dateParts(featured.data);
+          return (
+            <a href={`/notes/${featured.id}`} class={`kyp-card ${kindClassOf(featured.data.kind)} flex flex-col p-5 sm:p-6`}>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-2.5">
+                {featured.data.kind !== 'essay' && (
+                  <NoteKindBadge kind={featured.data.kind} incident={featured.data.incident} size="sm" />
+                )}
+                <time datetime={effectiveDate} class="text-[11px] uppercase tracking-wider text-ink-4 font-mono">{effectiveDate}</time>
+                {isUpdated && <span class="text-[10px] text-ink-4 font-mono" title={`Originally published ${origDate}`}>updated</span>}
+                <span class="text-[11px] text-ink-4 font-mono">· {readingTime(featured.body ?? '')}</span>
+              </div>
+              <h3 class="text-xl sm:text-2xl font-bold text-ink leading-tight">{featured.data.title}</h3>
+              {featured.data.description && (
+                <p class="text-sm text-ink-3 mt-2.5 leading-relaxed line-clamp-3">{featured.data.description}</p>
+              )}
+              <div class="flex flex-wrap items-center gap-1.5 mt-auto pt-5 text-[11px]">
+                {featured.data.tags.slice(0, 5).map(tag => (
+                  <span class="kyp-tag">{tag}</span>
+                ))}
+                {featured.data.relatedProtocol && (
+                  <span class="ml-auto text-ink-4 self-center">↳ <span class="text-accent">{featured.data.relatedProtocol}</span></span>
+                )}
+              </div>
+            </a>
+          );
+        })()}
+
+        {/* Three small cards beside the featured note */}
+        {sideNotes.length > 0 && (
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-3">
+            {sideNotes.map(note => {
+              const { effectiveDate, origDate, isUpdated } = dateParts(note.data);
+              return (
+                <a href={`/notes/${note.id}`} class={`kyp-card ${kindClassOf(note.data.kind)} flex flex-col justify-center h-full p-4`}>
+                  <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1.5">
+                    <time datetime={effectiveDate} class="text-[11px] uppercase tracking-wider text-ink-4 font-mono">{effectiveDate}</time>
+                    {isUpdated && <span class="text-[10px] text-ink-4 font-mono" title={`Originally published ${origDate}`}>updated</span>}
+                    {note.data.kind === 'incident' && <span class="text-[10px] uppercase tracking-wider text-danger font-semibold">Incident</span>}
+                    {note.data.kind === 'research' && <span class="text-[10px] uppercase tracking-wider text-warn font-semibold">Research</span>}
+                  </div>
+                  <h3 class="text-sm font-semibold text-ink leading-snug line-clamp-2">{note.data.title}</h3>
+                </a>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  )}
+
+  <!-- Protocol database — same card rhythm as notes -->
+  {totalProtocols > 0 && (
+    <section>
+      <div class="flex items-end justify-between gap-3 mb-5 pb-3 border-b border-line-2">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight">Protocol database</h2>
+          <p class="text-sm text-ink-4 mt-1">
+            Permission analysis & audit findings — {totalProtocols} protocol{totalProtocols === 1 ? '' : 's'} across {chainsCovered} chain{chainsCovered === 1 ? '' : 's'}{failingGates > 0 && <span class="text-danger"> · {failingGates} failing gate{failingGates === 1 ? '' : 's'}</span>}.
+          </p>
+        </div>
+        <a href="/protocols" class="text-sm text-accent hover:text-accent-2 shrink-0">Browse &amp; filter all →</a>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {protocolCards.map(c => (
           <ProtocolCard
             protocol={c.data.protocol}
             chain={c.data.chain}
@@ -122,105 +176,11 @@ const cards = protocols.map(report => {
         ))}
       </div>
 
-      <div id="empty-state" class="hidden p-8 bg-inset/40 border border-dashed border-line-2 rounded-lg text-center">
-        <div class="text-ink-2 font-semibold mb-1">No protocols match the current filters</div>
-        <p class="text-sm text-ink-4">Try clearing one or more filters.</p>
-      </div>
-
-      {totalProtocols === 0 && (
-        <div class="p-8 bg-inset/40 border border-dashed border-line-2 rounded-lg text-center">
-          <div class="text-ink-2 font-semibold mb-1">No protocols indexed yet</div>
-          <p class="text-sm text-ink-4">Reports added to <code class="text-ink-3">src/content/reports/</code> will appear here.</p>
-        </div>
+      {totalProtocols > protocolCards.length && (
+        <a href="/protocols" class="mt-5 inline-flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink transition-colors">
+          View all {totalProtocols} protocols <span aria-hidden="true" class="opacity-70">→</span>
+        </a>
       )}
-    </div>
-  </div>
-
-  {recentNotes.length > 0 && (
-    <section class="mt-12 pt-8 border-t border-line-2">
-      <div class="flex items-baseline justify-between mb-4">
-        <div>
-          <h2 class="text-xl font-bold">Recent notes</h2>
-          <p class="text-xs text-ink-4 mt-0.5">Security research, writeups, and short essays.</p>
-        </div>
-        <a href="/notes" class="text-sm text-accent hover:text-accent-2">View all →</a>
-      </div>
-      <ul class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {recentNotes.map(note => {
-          const origDate = isoDate(note.data.date);
-          const updatedDate = note.data.updated ? isoDate(note.data.updated) : null;
-          const effectiveDate = updatedDate ?? origDate;
-          const isUpdated = updatedDate !== null && updatedDate !== origDate;
-          const kindClass = note.data.kind === 'incident' ? 'is-incident' : note.data.kind === 'research' ? 'is-research' : '';
-          return (
-            <li>
-              <a href={`/notes/${note.id}`} class={`kyp-card ${kindClass} block h-full p-4`}>
-                {note.data.kind !== 'essay' && (
-                  <div class="mb-2">
-                    <NoteKindBadge kind={note.data.kind} incident={note.data.incident} size="sm" />
-                  </div>
-                )}
-                <div class="flex items-baseline gap-1.5">
-                  <time datetime={effectiveDate} class="text-[11px] uppercase tracking-wider text-ink-4 font-mono">{effectiveDate}</time>
-                  {isUpdated && (
-                    <span class="text-[10px] text-ink-4 font-mono" title={`Originally published ${origDate}`}>updated</span>
-                  )}
-                </div>
-                <h3 class="text-sm font-semibold text-ink mt-1 leading-snug">{note.data.title}</h3>
-                {note.data.description && (
-                  <p class="text-xs text-ink-3 mt-2 leading-relaxed line-clamp-3">{note.data.description}</p>
-                )}
-                <div class="flex flex-wrap items-center gap-1 mt-3 text-[11px]">
-                  {note.data.tags.slice(0, 3).map(tag => (
-                    <span class="kyp-tag">{tag}</span>
-                  ))}
-                </div>
-              </a>
-            </li>
-          );
-        })}
-      </ul>
     </section>
   )}
 </Layout>
-
-<script>
-  // Client-side sort for the protocol grid. Order-by values live in data
-  // attributes rendered by ProtocolCard; filters (FilterPanel) only toggle
-  // visibility, so sorting and filtering compose without coordination.
-  (function () {
-    const grid = document.getElementById('protocol-grid');
-    const select = document.getElementById('sort-select') as HTMLSelectElement | null;
-    if (!grid || !select) return;
-
-    const num = (el: HTMLElement, key: string) => Number(el.dataset[key] ?? 0);
-    const SORTS: Record<string, (a: HTMLElement, b: HTMLElement) => number> = {
-      'name': (a, b) => (a.dataset.protocolName ?? '').localeCompare(b.dataset.protocolName ?? ''),
-      'score-asc': (a, b) => num(a, 'score') - num(b, 'score'),
-      'score-desc': (a, b) => num(b, 'score') - num(a, 'score'),
-      'audit-desc': (a, b) => num(b, 'auditTs') - num(a, 'auditTs'),
-      'audit-asc': (a, b) => num(a, 'auditTs') - num(b, 'auditTs'),
-    };
-
-    const applySort = (updateUrl = true) => {
-      const sorter = SORTS[select.value] ?? SORTS['audit-desc'];
-      const cards = Array.from(grid.querySelectorAll<HTMLElement>('a[data-protocol-card]'));
-      cards.sort(sorter);
-      grid.append(...cards);
-      if (updateUrl) {
-        const params = new URLSearchParams(location.search);
-        if (select.value === 'audit-desc') params.delete('sort');
-        else params.set('sort', select.value);
-        const qs = params.toString();
-        history.replaceState(null, '', qs ? `${location.pathname}?${qs}` : location.pathname);
-      }
-    };
-
-    const fromUrl = new URLSearchParams(location.search).get('sort');
-    if (fromUrl && SORTS[fromUrl]) {
-      select.value = fromUrl;
-      applySort(false);
-    }
-    select.addEventListener('change', () => applySort());
-  })();
-</script>
