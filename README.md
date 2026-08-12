@@ -5,7 +5,7 @@
 [![Deploy to GitHub Pages](https://github.com/mart1n2/kyp/actions/workflows/deploy.yml/badge.svg)](https://github.com/mart1n2/kyp/actions/workflows/deploy.yml)
 [![Astro](https://img.shields.io/badge/Astro-5-BC52EE?logo=astro&logoColor=white)](https://astro.build/)
 
-**[Explore KYP](https://www.kyp.one)** · **[Research notes → mart1n.xyz](https://mart1n.xyz)**
+**[Explore KYP](https://www.kyp.one)** · **[Research notes → mart1n.xyz](https://www.mart1n.xyz)**
 
 ## What KYP does
 
@@ -22,7 +22,7 @@ Each profile brings together:
 KYP is descriptive, not advisory. Every entry is a point-in-time technical assessment and should be read alongside its full report and primary sources.
 
 Long-form writing — incident post-mortems, security research, and essays — lives separately at
-**[mart1n.xyz](https://mart1n.xyz)** ([digital-garden](https://github.com/mart1n2/digital-garden)).
+**[mart1n.xyz](https://www.mart1n.xyz)** ([digital-garden](https://github.com/mart1n2/digital-garden)).
 This repository is the protocol database only.
 
 ## How the site is organized
