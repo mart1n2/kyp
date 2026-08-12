@@ -1,217 +1,40 @@
 ---
-import Layout from '../../components/Layout.astro';
-import NoteKindBadge from '../../components/NoteKindBadge.astro';
-import { getCollection } from 'astro:content';
-import RelativeAge from '../../components/RelativeAge.astro';
-import { compareNotes, isoDate } from '../../utils/notes';
-
-const notes = (await getCollection('notes', ({ data }) => !data.draft))
-  .sort(compareNotes);
-
-const tagCounts = new Map<string, number>();
-for (const n of notes) {
-  for (const t of n.data.tags) {
-    tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
-  }
-}
-const tags = Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-
-const incidentCount = notes.filter(n => n.data.kind === 'incident').length;
-const researchCount = notes.filter(n => n.data.kind === 'research').length;
+// The notes index moved to mart1n.xyz. Same canonical + meta-refresh treatment
+// as the individual note stubs.
+import { NOTES_HOME } from '../../utils/moved-notes';
 ---
 
-<Layout title="Notes — Know Your Protocol" description="Security research, writeups, and meta posts on the KYP framework.">
-  <section class="mb-8">
-    <div class="inline-flex items-center gap-2 mb-3 px-2.5 py-1 rounded-full bg-accent/10 border border-accent/20 text-[11px] font-medium text-accent-2 uppercase tracking-wider">
-      <span class="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(96,165,250,0.8)]"></span>
-      {notes.length} {notes.length === 1 ? 'note' : 'notes'}
-    </div>
-    <h1 class="text-4xl sm:text-5xl font-extrabold mb-3 tracking-tight bg-gradient-to-br from-ink via-ink to-ink-3 bg-clip-text text-transparent">Notes</h1>
-    <p class="text-ink-3 max-w-2xl leading-relaxed">
-      Security research, writeups, and short essays. Some posts are tied to a specific protocol on this site; others are cross-cutting.
-    </p>
-  </section>
-
-  {(incidentCount + researchCount) > 0 && (
-    <div class="mb-3 flex flex-wrap items-center gap-2">
-      <span class="text-xs uppercase tracking-wider text-ink-4 mr-1">Type:</span>
-      <button
-        type="button"
-        data-kind-filter=""
-        class="kind-filter is-active px-2.5 py-1 rounded border text-xs font-medium transition-colors"
-      >All <span class="opacity-60">({notes.length})</span></button>
-      {incidentCount > 0 && (
-        <button
-          type="button"
-          data-kind-filter="incident"
-          class="kind-filter kind-incident px-2.5 py-1 rounded border text-xs font-medium transition-colors inline-flex items-center gap-1"
-        ><span aria-hidden="true">⚠</span> Incidents <span class="opacity-60">({incidentCount})</span></button>
-      )}
-      {researchCount > 0 && (
-        <button
-          type="button"
-          data-kind-filter="research"
-          class="kind-filter kind-research px-2.5 py-1 rounded border text-xs font-medium transition-colors inline-flex items-center gap-1"
-        ><span aria-hidden="true">◆</span> Research <span class="opacity-60">({researchCount})</span></button>
-      )}
-    </div>
-  )}
-
-  {tags.length > 0 && (
-    <div class="mb-6 flex flex-wrap items-center gap-2">
-      <span class="text-xs uppercase tracking-wider text-ink-4 mr-1">Tag:</span>
-      <button
-        type="button"
-        data-tag-filter=""
-        class="kyp-tag tag-filter is-active transition-colors"
-      >All <span class="opacity-60">({notes.length})</span></button>
-      {tags.map(([tag, count]) => (
-        <button
-          type="button"
-          data-tag-filter={tag}
-          class="kyp-tag tag-filter transition-colors"
-        >{tag} <span class="opacity-60">({count})</span></button>
-      ))}
-    </div>
-  )}
-
-  <ul id="notes-list" class="space-y-3">
-    {notes.map(note => {
-      const kindClass = note.data.kind === 'incident' ? 'is-incident' : note.data.kind === 'research' ? 'is-research' : '';
-      return (
-      <li
-        data-note-card
-        data-tags={note.data.tags.join(',')}
-        data-kind={note.data.kind}
-      >
-        <a
-          href={`/notes/${note.id}`}
-          class={`kyp-card ${kindClass} block p-5`}
-        >
-          {note.data.kind !== 'essay' && (
-            <div class="mb-2">
-              <NoteKindBadge kind={note.data.kind} incident={note.data.incident} size="sm" />
-            </div>
-          )}
-          <div class="flex items-start justify-between gap-4 mb-1">
-            <h2 class="text-lg font-semibold text-ink">{note.data.title}</h2>
-            <div class="shrink-0 text-right text-xs font-mono">
-              <time datetime={isoDate(note.data.updated ?? note.data.date)} class="text-ink-4">
-                {isoDate(note.data.updated ?? note.data.date)}
-              </time>
-              {note.data.updated && note.data.updated.getTime() !== note.data.date.getTime() && (
-                <div class="text-[10px] text-ink-4" title={`Originally published ${isoDate(note.data.date)}`}>
-                  updated
-                </div>
-              )}
-            </div>
-          </div>
-          {note.data.description && (
-            <p class="text-sm text-ink-3 leading-relaxed mt-1">{note.data.description}</p>
-          )}
-          <div class="flex flex-wrap items-center gap-1.5 mt-3 text-xs">
-            {note.data.tags.map(tag => (
-              <span class="kyp-tag">{tag}</span>
-            ))}
-            {note.data.relatedProtocol && (
-              <span class="ml-auto text-ink-4">↳ <span class="text-accent">{note.data.relatedProtocol}</span></span>
-            )}
-            <span class="text-ink-4">· <RelativeAge date={isoDate(note.data.updated ?? note.data.date)} /></span>
-          </div>
-        </a>
-      </li>
-    );
-    })}
-  </ul>
-
-  {notes.length === 0 && (
-    <div class="p-8 bg-inset/40 border border-dashed border-line-2 rounded-lg text-center">
-      <div class="text-ink-2 font-semibold mb-1">No notes yet</div>
-      <p class="text-sm text-ink-4">Markdown files in <code class="text-ink-3">src/content/notes/</code> will appear here.</p>
-    </div>
-  )}
-</Layout>
-
-<style>
-  /* Kind filters keep their own neutral chip look; tag filters are .kyp-tag
-   * chips (base + hover from global.css) with an accent-filled active state. */
-  .kind-filter {
-    background: rgb(var(--c-ink) / 0.05);
-    color: rgb(var(--c-ink-2));
-    border-color: var(--c-line-2);
-  }
-  .kind-filter:hover {
-    background: rgb(var(--c-ink) / 0.1);
-    color: rgb(var(--c-ink));
-  }
-  .tag-filter.is-active {
-    background: rgb(var(--c-accent) / 0.25);
-    color: rgb(var(--c-accent-2));
-    border-color: rgb(var(--c-accent) / 0.5);
-  }
-  .kind-filter.kind-incident.is-active {
-    background: rgb(var(--c-danger) / 0.15);
-    color: rgb(var(--c-danger));
-    border-color: rgb(var(--c-danger) / 0.5);
-  }
-  .kind-filter.kind-research.is-active {
-    background: rgb(var(--c-warn) / 0.15);
-    color: rgb(var(--c-warn));
-    border-color: rgb(var(--c-warn) / 0.5);
-  }
-  .kind-filter.is-active:not(.kind-incident):not(.kind-research) {
-    background: rgb(var(--c-accent) / 0.2);
-    color: rgb(var(--c-accent-2));
-    border-color: rgb(var(--c-accent) / 0.5);
-  }
-</style>
-
-<script>
-  (function () {
-    const tagButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.tag-filter'));
-    const kindButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.kind-filter'));
-    const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-note-card]'));
-    if (cards.length === 0) return;
-
-    let activeTag = '';
-    let activeKind = '';
-
-    const syncUrl = () => {
-      const params = new URLSearchParams(location.search);
-      if (activeTag) params.set('tag', activeTag); else params.delete('tag');
-      if (activeKind) params.set('kind', activeKind); else params.delete('kind');
-      const qs = params.toString();
-      history.replaceState(null, '', qs ? `${location.pathname}?${qs}` : location.pathname);
-    };
-
-    const apply = (updateUrl = true) => {
-      tagButtons.forEach(b => b.classList.toggle('is-active', (b.dataset.tagFilter ?? '') === activeTag));
-      kindButtons.forEach(b => b.classList.toggle('is-active', (b.dataset.kindFilter ?? '') === activeKind));
-      cards.forEach(card => {
-        const cardTags = (card.dataset.tags ?? '').split(',').filter(Boolean);
-        const cardKind = card.dataset.kind ?? 'essay';
-        const tagOk = activeTag === '' || cardTags.includes(activeTag);
-        const kindOk = activeKind === '' || cardKind === activeKind;
-        card.style.display = (tagOk && kindOk) ? '' : 'none';
-      });
-      if (updateUrl) syncUrl();
-    };
-
-    tagButtons.forEach(b => b.addEventListener('click', () => {
-      activeTag = b.dataset.tagFilter ?? '';
-      apply();
-    }));
-    kindButtons.forEach(b => b.addEventListener('click', () => {
-      activeKind = b.dataset.kindFilter ?? '';
-      apply();
-    }));
-
-    // Restore state from a shared/bookmarked URL.
-    const params = new URLSearchParams(location.search);
-    const urlTag = params.get('tag') ?? '';
-    const urlKind = params.get('kind') ?? '';
-    if (urlTag && tagButtons.some(b => b.dataset.tagFilter === urlTag)) activeTag = urlTag;
-    if (urlKind && kindButtons.some(b => b.dataset.kindFilter === urlKind)) activeKind = urlKind;
-    if (activeTag || activeKind) apply(false);
-  })();
-</script>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moved — {NOTES_HOME}</title>
+    <link rel="canonical" href={NOTES_HOME} />
+    <meta name="robots" content="noindex, follow" />
+    <meta http-equiv="refresh" content={`0; url=${NOTES_HOME}`} />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #020617;
+        color: #cbd5e1;
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        padding: 2rem;
+        text-align: center;
+        line-height: 1.6;
+      }
+      a { color: #93c5fd; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p>The research notes have moved to <a href={NOTES_HOME}>{NOTES_HOME}</a>.</p>
+      <p style="font-size:0.875rem;color:#64748b">
+        Redirecting… or return to the <a href="/">protocol database</a>.
+      </p>
+    </main>
+  </body>
+</html>

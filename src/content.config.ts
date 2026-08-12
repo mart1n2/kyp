@@ -1,5 +1,4 @@
 import { defineCollection, z } from 'astro:content';
-import { glob } from 'astro/loaders';
 import fs from 'fs';
 import path from 'path';
 
@@ -138,24 +137,6 @@ const reports = defineCollection({
   }),
 });
 
-const notes = defineCollection({
-  loader: glob({ pattern: '*.md', base: './src/content/notes' }),
-  schema: z.object({
-    title: z.string(),
-    date: z.coerce.date(),
-    updated: z.coerce.date().optional(),
-    tags: z.array(z.string()).default([]),
-    description: z.string().optional(),
-    relatedProtocol: z.string().optional(),
-    draft: z.boolean().default(false),
-    kind: z.enum(['incident', 'research', 'essay']).default('essay'),
-    incident: z.object({
-      loss: z.string().optional(),
-      scope: z.enum(['single-market', 'protocol-wide', 'cross-protocol', 'ecosystem']).optional(),
-      status: z.enum(['post-mortem', 'ongoing', 'unresolved']).optional(),
-      occurredOn: z.coerce.date().optional(),
-    }).optional(),
-  }),
-});
-
-export const collections = { reports, notes };
+// The `notes` collection moved to the digital-garden repo (mart1n.xyz) in the
+// 2026-08-12 split. This site is the protocol database only.
+export const collections = { reports };

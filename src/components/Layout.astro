@@ -7,7 +7,7 @@ import SearchBar from './SearchBar.astro';
 interface Props {
   title: string;
   description?: string;
-  /** 'article' adds article OG tags — use for notes and reports. */
+  /** 'article' adds article OG tags — use for report pages. */
   ogType?: 'website' | 'article';
   publishedDate?: string;
   modifiedDate?: string;
@@ -65,7 +65,7 @@ const navLink = (path: string) =>
     <link rel="mask-icon" href="/favicon.svg" color="#60a5fa" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#020617" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f7fb" />
-    <link rel="alternate" type="application/rss+xml" title="KYP Notes" href={new URL('/rss.xml', Astro.site)} />
+    <link rel="alternate" type="application/rss+xml" title="KYP Assessments" href={new URL('/rss.xml', Astro.site)} />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <title>{title} | Know Your Protocol</title>
   </head>
@@ -84,9 +84,12 @@ const navLink = (path: string) =>
           <SearchBar />
         </div>
         <div class="flex items-center gap-1 text-sm shrink-0">
-          <a href="/notes" class={navLink('/notes')}>Notes</a>
-          <a href="/protocols" class={navLink('/protocols')}>Protocols</a>
+          <a href="/" class={navLink('/')}>Protocols</a>
           <a href="/about" class={`hidden sm:inline-block ${navLink('/about')}`}>About</a>
+          <a href="https://mart1n.xyz" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-md text-ink-3 hover:text-ink hover:bg-ink/5 transition-colors hidden md:inline-flex items-center gap-1.5">
+            <span>Research notes</span>
+            <span aria-hidden="true" class="text-xs opacity-70">↗</span>
+          </a>
           <a href="https://github.com/mart1n2/kyp" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-md text-ink-3 hover:text-ink hover:bg-ink/5 transition-colors hidden sm:inline-flex items-center gap-1.5">
             <span>GitHub</span>
             <span aria-hidden="true" class="text-xs opacity-70">↗</span>
@@ -121,12 +124,17 @@ const navLink = (path: string) =>
             <span class="text-sm tracking-tight">Know Your Protocol</span>
           </a>
           <nav aria-label="Footer" class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-ink-3">
-            <a href="/notes" class="hover:text-ink transition-colors">Notes</a>
-            <a href="/protocols" class="hover:text-ink transition-colors">Protocols</a>
+            <a href="/" class="hover:text-ink transition-colors">Protocols</a>
             <a href="/about" class="hover:text-ink transition-colors">About</a>
             <a href="/rss.xml" class="hover:text-ink transition-colors">RSS</a>
             <a href="https://github.com/mart1n2/kyp" target="_blank" rel="noopener noreferrer" class="hover:text-ink transition-colors">GitHub ↗</a>
           </nav>
+        </div>
+        <div class="mt-8 pt-6 border-t border-line flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-ink-4">
+          <span class="kyp-label">Elsewhere</span>
+          <a href="https://mart1n.xyz" target="_blank" rel="noopener noreferrer" class="hover:text-ink-2 transition-colors">
+            mart1n.xyz — incident post-mortems and security research ↗
+          </a>
         </div>
         <p class="text-xs mt-8 text-ink-4 max-w-2xl mx-auto leading-relaxed text-center">
           This site presents technical audit findings and protocol metadata only. It does not constitute

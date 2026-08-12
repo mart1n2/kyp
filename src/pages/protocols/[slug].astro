@@ -50,9 +50,6 @@ const allReports = (await getCollection('reports'))
   .filter(r => r.data.protocolSlug === protocolSlug)
   .sort((a, b) => b.data.auditDate.localeCompare(a.data.auditDate));
 
-const relatedNotes = (await getCollection('notes', ({ data }) => !data.draft && data.relatedProtocol === protocolSlug))
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-
 const dbCategories = Array.from(new Set(dealBreakerDetails.map(d => d.category).filter(Boolean))) as string[];
 const groupedDB = dbCategories.length > 0
   ? dbCategories.map(cat => ({ category: cat, items: dealBreakerDetails.filter(d => d.category === cat) }))
@@ -302,36 +299,6 @@ const sections = [
     )}
 
   </div>
-
-  {relatedNotes.length > 0 && (
-    <section class="mt-10 pt-6 border-t border-line-2">
-      <div class="flex items-baseline justify-between mb-3">
-        <h2 class="text-xs font-semibold uppercase tracking-wider text-ink-4">Related notes</h2>
-        <a href="/notes" class="text-xs text-accent hover:text-accent-2">All notes →</a>
-      </div>
-      <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {relatedNotes.map(note => {
-          const date = note.data.date.toISOString().slice(0, 10);
-          return (
-            <li>
-              <a href={`/notes/${note.id}`} class="kyp-card block h-full p-4">
-                <time datetime={date} class="text-[11px] uppercase tracking-wider text-ink-4 font-mono">{date}</time>
-                <div class="text-sm font-semibold text-ink mt-1 leading-snug">{note.data.title}</div>
-                {note.data.description && (
-                  <p class="text-xs text-ink-3 mt-2 leading-relaxed line-clamp-2">{note.data.description}</p>
-                )}
-                <div class="flex flex-wrap items-center gap-1 mt-2 text-[11px]">
-                  {note.data.tags.slice(0, 3).map(tag => (
-                    <span class="kyp-tag">{tag}</span>
-                  ))}
-                </div>
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  )}
 
   <section class="mt-10 pt-6 border-t border-line-2">
     <h2 class="text-xs font-semibold uppercase tracking-wider text-ink-4 mb-3">All reports for {protocol}</h2>

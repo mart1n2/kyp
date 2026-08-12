@@ -1,147 +1,58 @@
 ---
-import Layout from '../../components/Layout.astro';
-import NoteKindBadge from '../../components/NoteKindBadge.astro';
-import ReportTOC from '../../components/ReportTOC.astro';
-import JsonLd from '../../components/JsonLd.astro';
-import { getCollection, render } from 'astro:content';
-import RelativeAge from '../../components/RelativeAge.astro';
-import { compareNotes, isoDate, readingTime } from '../../utils/notes';
+/**
+ * Redirect stubs for the notes that moved to mart1n.xyz.
+ *
+ * GitHub Pages can't issue a 301, so each old URL gets a page carrying a
+ * canonical link plus a meta refresh — search engines treat that pairing as a
+ * soft permanent redirect, and readers land on the right entry.
+ *
+ * The map is hardcoded on purpose: the notes collection no longer exists in
+ * this repo, so there is nothing to derive it from. Slugs are frozen at the
+ * moment of the move and should never need editing.
+ */
+import { MOVED_NOTES, NOTES_HOME } from '../../utils/moved-notes';
 
 export async function getStaticPaths() {
-  const notes = await getCollection('notes', ({ data }) => !data.draft);
-  return notes.map(note => ({
-    params: { slug: note.id },
-    props: { note },
+  return Object.entries(MOVED_NOTES).map(([slug, destination]) => ({
+    params: { slug },
+    props: { destination },
   }));
 }
 
-const { note } = Astro.props;
-const { Content, headings } = await render(note);
-
-const date = isoDate(note.data.date);
-const updated = note.data.updated ? isoDate(note.data.updated) : null;
-const effectiveDate = updated ?? date;
-const readTime = readingTime(note.body ?? '');
-
-// A TOC only earns its column on longer notes.
-const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
-const showToc = tocHeadings.length >= 3;
-
-// Find related notes — shared tag, excluding self.
-const allNotes = (await getCollection('notes', ({ data }) => !data.draft))
-  .filter(n => n.id !== note.id)
-  .sort(compareNotes);
-
-const sharedTagNotes = allNotes
-  .filter(n => n.data.tags.some(t => note.data.tags.includes(t)))
-  .slice(0, 3);
-
-const proseClasses = `prose prose-invert max-w-3xl
-  prose-headings:scroll-mt-20
-  prose-h1:hidden
-  prose-h2:text-xl prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-3
-  prose-h3:text-base prose-h3:font-semibold prose-h3:text-ink prose-h3:mt-6 prose-h3:mb-2
-  prose-p:text-ink-2 prose-p:leading-relaxed
-  prose-li:text-ink-2 prose-li:my-1
-  prose-strong:text-ink
-  prose-a:text-accent prose-a:no-underline hover:prose-a:text-accent-2 hover:prose-a:underline
-  prose-blockquote:border-l-accent prose-blockquote:bg-inset/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r prose-blockquote:not-italic prose-blockquote:text-ink-2
-  prose-code:text-accent-2 prose-code:bg-inset prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-code:font-normal prose-code:text-[0.875em]
-  prose-hr:border-line-2
-  prose-table:text-sm prose-table:my-4
-  prose-th:text-ink-2 prose-th:font-semibold prose-th:bg-inset/60 prose-th:py-2 prose-th:px-3 prose-th:text-left prose-th:border prose-th:border-line-2
-  prose-td:py-2 prose-td:px-3 prose-td:text-ink-2 prose-td:align-top prose-td:border prose-td:border-line`;
+const { destination } = Astro.props;
 ---
 
-<Layout
-  title={`${note.data.title} — Notes`}
-  description={note.data.description ?? note.data.title}
-  ogType="article"
-  publishedDate={date}
-  modifiedDate={updated ?? undefined}
->
-  <div
-    data-pagefind-body
-    data-pagefind-meta={`title:${note.data.title}`}
-  >
-  <meta data-pagefind-meta="type:note" />
-  {note.data.relatedProtocol && (
-    <meta data-pagefind-meta={`protocol:${note.data.relatedProtocol}`} />
-  )}
-  <JsonLd type="note" data={{ title: note.data.title, description: note.data.description, date, updated }} />
-  <a href="/notes" class="text-sm text-accent hover:underline mb-4 inline-flex items-center gap-1">
-    <span aria-hidden="true">←</span>
-    <span>All notes</span>
-  </a>
-
-  <header class="mb-8">
-    {note.data.kind !== 'essay' && (
-      <div class="mb-3">
-        <NoteKindBadge kind={note.data.kind} incident={note.data.incident} size="md" />
-      </div>
-    )}
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-wider text-ink-4 mb-2">
-      {updated ? (
-        <>
-          <time datetime={updated} class="font-mono normal-case">Updated {updated}</time>
-          <span aria-hidden="true">·</span>
-          <time datetime={date} class="font-mono normal-case text-ink-4" title="Originally published">orig {date}</time>
-        </>
-      ) : (
-        <time datetime={date} class="font-mono normal-case">{date}</time>
-      )}
-      <span aria-hidden="true">·</span><span class="normal-case"><RelativeAge date={effectiveDate} /></span>
-      <span aria-hidden="true">·</span>
-      <span class="normal-case">{readTime}</span>
-      {note.data.tags.map(tag => (
-        <span class="kyp-tag normal-case tracking-normal">{tag}</span>
-      ))}
-    </div>
-    <h1 class="text-3xl sm:text-4xl font-bold mb-2 leading-tight">{note.data.title}</h1>
-    {note.data.description && (
-      <p class="text-ink-3 leading-relaxed max-w-2xl mt-2">{note.data.description}</p>
-    )}
-    {note.data.relatedProtocol && (
-      <p class="text-sm text-ink-3 mt-3">
-        Related protocol: <a href={`/protocols/${note.data.relatedProtocol}`} class="text-accent hover:text-accent-2 underline-offset-2 hover:underline">{note.data.relatedProtocol}</a>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moved — {destination}</title>
+    <link rel="canonical" href={destination} />
+    <meta name="robots" content="noindex, follow" />
+    <meta http-equiv="refresh" content={`0; url=${destination}`} />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #020617;
+        color: #cbd5e1;
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        padding: 2rem;
+        text-align: center;
+        line-height: 1.6;
+      }
+      a { color: #93c5fd; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p>This writeup has moved to <a href={destination}>{destination}</a>.</p>
+      <p style="font-size:0.875rem;color:#64748b">
+        Redirecting… or browse all writing at <a href={NOTES_HOME}>{NOTES_HOME}</a>.
       </p>
-    )}
-  </header>
-
-  {showToc ? (
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-      <aside class="lg:col-span-1 lg:order-last">
-        <ReportTOC headings={tocHeadings} title="On this page" />
-      </aside>
-      <article class={`lg:col-span-3 ${proseClasses}`}>
-        <Content />
-      </article>
-    </div>
-  ) : (
-    <article class={proseClasses}>
-      <Content />
-    </article>
-  )}
-
-  {sharedTagNotes.length > 0 && (
-    <section class="mt-12 pt-6 border-t border-line-2 max-w-3xl">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-ink-4 mb-3">More notes</h2>
-      <ul class="space-y-2">
-        {sharedTagNotes.map(n => (
-          <li>
-            <a href={`/notes/${n.id}`} class="kyp-card block p-3">
-              <div class="flex items-center justify-between gap-3">
-                <span class="text-sm font-medium text-ink-2">{n.data.title}</span>
-                <time class="text-xs text-ink-4 font-mono shrink-0">{isoDate(n.data.updated ?? n.data.date)}</time>
-              </div>
-              {n.data.description && (
-                <p class="text-xs text-ink-4 mt-1 line-clamp-1">{n.data.description}</p>
-              )}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )}
-  </div>
-</Layout>
+    </main>
+  </body>
+</html>

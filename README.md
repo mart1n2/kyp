@@ -5,7 +5,7 @@
 [![Deploy to GitHub Pages](https://github.com/mart1n2/kyp/actions/workflows/deploy.yml/badge.svg)](https://github.com/mart1n2/kyp/actions/workflows/deploy.yml)
 [![Astro](https://img.shields.io/badge/Astro-5-BC52EE?logo=astro&logoColor=white)](https://astro.build/)
 
-**[Explore KYP](https://www.kyp.one)** · **[Read the research notes](https://www.kyp.one/notes)**
+**[Explore KYP](https://www.kyp.one)** · **[Research notes → mart1n.xyz](https://mart1n.xyz)**
 
 ## What KYP does
 
@@ -18,27 +18,28 @@ Each profile brings together:
 - **Contract inventory** — deployed addresses, contract types, compiler versions, and verification status
 - **Open issues** — severity, impact, remediation priority, and expected timeline
 - **Audit history** — prior reviews, scope, findings, and source reports
-- **Research notes** — incident analyses, technical research, and longer-form essays
 
 KYP is descriptive, not advisory. Every entry is a point-in-time technical assessment and should be read alongside its full report and primary sources.
+
+Long-form writing — incident post-mortems, security research, and essays — lives separately at
+**[mart1n.xyz](https://mart1n.xyz)** ([digital-garden](https://github.com/mart1n2/digital-garden)).
+This repository is the protocol database only.
 
 ## How the site is organized
 
 ```text
 src/
 ├── content/
-│   ├── reports/
-│   │   └── <protocol>/
-│   │       ├── <report>.md
-│   │       └── <report>.metadata.json
-│   └── notes/
-│       └── <note>.md
+│   └── reports/
+│       └── <protocol>/
+│           ├── <report>.md
+│           └── <report>.metadata.json
 ├── components/               # Dashboard, report, navigation, and badge UI
 ├── pages/
-│   ├── index.astro            # Searchable protocol dashboard
+│   ├── index.astro            # Filterable protocol database (was /protocols)
 │   ├── protocols/[slug].astro # Protocol profile and assessment history
 │   ├── reports/[...slug].astro
-│   └── notes/                 # Research index and note pages
+│   └── notes/                 # Redirect stubs → mart1n.xyz (see utils/moved-notes.ts)
 ├── styles/
 └── utils/
 
@@ -47,7 +48,11 @@ src/content.config.ts          # Runtime content validation
 postbuild.mjs                  # Pagefind search-index generation
 ```
 
-Reports use a paired-file model: the Markdown file contains the full assessment, while the adjacent metadata JSON powers the dashboard and protocol pages. Notes use validated Markdown frontmatter and support `incident`, `research`, and `essay` types.
+Reports use a paired-file model: the Markdown file contains the full assessment, while the adjacent metadata JSON powers the dashboard and protocol pages.
+
+`src/pages/notes/` no longer holds content. It generates canonical + meta-refresh stubs for the note
+URLs that existed before the split, mapped in `src/utils/moved-notes.ts`, so old links still land on
+the right entry at mart1n.xyz.
 
 ## Add a report
 
